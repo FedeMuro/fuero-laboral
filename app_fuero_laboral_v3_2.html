@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fuero Laboral Córdoba — Oficina de Gestión</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#F5F4F0;--sur:#FFF;--bdr:#E2E0D8;--bdr2:#CBC9BF;
+  --tx:#1A1916;--tx2:#6B6960;--tx3:#9B9A94;
+  --ac:#1C4E3A;--ac2:#2D7A5C;--acl:#E8F4EE;
+  --wa:#8B4A0F;--wal:#FEF3E7;--in:#5B3A8A;--inl:#F0EBF9;
+  /* PALETA PROCESOS */
+  --ord:#1A56B0;--ordl:#E8F0FC;--ordd:#E8F0FC;
+  --pda:#1A7A3C;--pdal:#E6F4EC;
+  --esp:#6B3FA0;--espl:#F0EBF9;
+  --ot:#B07A00;--otl:#FDF5DC;
+  /* PALETA ESTADOS */
+  --res:#1A7A3C;--resl:#E6F4EC;
+  --sinr:#1A56B0;--sinrl:#E8F0FC;
+  --inadm:#B07A00;--inadml:#FDF5DC;
+  --gray:#6B6960;--grayl:#F0EEE8;
+  --mn:'IBM Plex Mono',monospace;--sn:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sn);background:var(--bg);color:var(--tx);font-size:13px;min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--ac);color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.hdr-t{font-size:14px;font-weight:600;letter-spacing:.02em}
+.hdr-s{font-size:10px;opacity:.6;font-family:var(--mn)}
+.hdr-b{font-family:var(--mn);font-size:10px;background:rgba(255,255,255,.15);padding:3px 9px;border-radius:4px}
+
+/* LAYOUT */
+.lay{display:flex;min-height:calc(100vh - 48px)}
+.sid{width:178px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bdr);padding:.75rem 0}
+.main{flex:1;padding:1.1rem;overflow-x:hidden}
+.ns{font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1rem .2rem}
+.ni{display:flex;align-items:center;gap:7px;padding:6px 1rem;font-size:12px;color:var(--tx2);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.ni:hover{background:var(--bg);color:var(--tx)}
+.ni.active{color:var(--ac);border-left-color:var(--ac);background:var(--acl);font-weight:500}
+.ni-ic{font-size:13px;width:16px;text-align:center}
+.sec{display:none}.sec.active{display:block}
+.pt{font-size:15px;font-weight:600;margin-bottom:.2rem}
+.ps{font-size:10px;color:var(--tx3);font-family:var(--mn);margin-bottom:1rem}
+
+/* CARDS */
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:.9rem 1rem;margin-bottom:.8rem}
+.ct{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.7rem}
+
+/* FILTROS TIPO POWER BI */
+.filt-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem;padding:.75rem 1rem;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;align-items:center}
+.filt-label{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-right:4px;white-space:nowrap}
+.filt-sep{width:1px;height:24px;background:var(--bdr);margin:0 4px}
+.fchip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:all .15s;user-select:none;white-space:nowrap}
+.fchip:hover{opacity:.85}
+.fchip.active{border-color:currentColor;box-shadow:0 0 0 2px currentColor inset}
+/* chips proceso */
+.fc-ord{background:var(--ordl);color:var(--ord)}
+.fc-pda{background:var(--pdal);color:var(--pda)}
+.fc-esp{background:var(--espl);color:var(--esp)}
+.fc-ot{background:var(--otl);color:var(--ot)}
+/* chips estado */
+.fc-res{background:var(--resl);color:var(--res)}
+.fc-sinr{background:var(--sinrl);color:var(--sinr)}
+.fc-inadm{background:var(--inadml);color:var(--inadm)}
+/* chips dependencia */
+.fc-dep{background:var(--grayl);color:var(--tx2)}
+.fc-dep.active{background:var(--acl);color:var(--ac);border-color:var(--ac)}
+.filt-clear{font-size:10px;color:var(--tx3);cursor:pointer;padding:3px 8px;border-radius:4px;border:1px solid var(--bdr);background:transparent;margin-left:auto}
+.filt-clear:hover{background:var(--bg);color:var(--tx)}
+
+/* MÉTRICAS */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:7px;margin-bottom:.9rem}
+.m{background:var(--sur);border:1px solid var(--bdr);border-radius:7px;padding:.65rem;text-align:center;transition:all .2s}
+.m.highlight{border-color:var(--ac2);box-shadow:0 0 0 2px var(--acl)}
+.ml{font-size:10px;color:var(--tx3);margin-bottom:3px;line-height:1.3}
+.mv{font-size:20px;font-weight:600;font-family:var(--mn)}
+.ms{font-size:10px;color:var(--tx3);margin-top:1px;font-family:var(--mn)}
+
+/* TABLA */
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:4px 7px;font-weight:600;font-size:10px;color:var(--tx3);border-bottom:1px solid var(--bdr);background:var(--bg);white-space:nowrap;letter-spacing:.03em}
+td{padding:4px 7px;border-bottom:1px solid var(--bdr);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.trg td{font-weight:600;background:var(--bg);font-size:10px;color:var(--tx2)}
+.trt td{font-weight:700;background:var(--acl)}
+
+/* GRÁFICOS */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
+@media(max-width:700px){.two,.three{grid-template-columns:1fr}}
+.cw{position:relative;width:100%;height:210px}
+.cwl{position:relative;width:100%;height:300px}
+.leg{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;font-size:10px;color:var(--tx3)}
+.leg span{display:flex;align-items:center;gap:3px}
+.lsq{width:9px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0}
+
+/* CHIPS ESTADO/PROCESO en tabla */
+.chip{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;font-family:var(--mn)}
+.cr{background:var(--resl);color:var(--res)}
+.cs{background:var(--sinrl);color:var(--sinr)}
+.ci{background:var(--inadml);color:var(--inadm)}
+.cg{background:var(--grayl);color:var(--gray)}
+
+/* BADGES PROCESO */
+.badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.bo{background:var(--ordl);color:var(--ord)}
+.bp{background:var(--pdal);color:var(--pda)}
+.be{background:var(--espl);color:var(--esp)}
+.bt{background:var(--otl);color:var(--ot)}
+
+/* DROP ZONES */
+.dz{border:1.5px dashed var(--bdr2);border-radius:8px;padding:.8rem;text-align:center;cursor:pointer;margin-bottom:.55rem;transition:all .2s}
+.dz:hover,.dz.ov{border-color:var(--ac);background:var(--acl)}
+.dz input{display:none}
+.dzi{font-size:18px;margin-bottom:2px}
+.dzl{font-size:12px;font-weight:500;margin-bottom:1px}
+.dzs{font-size:10px;color:var(--tx3)}
+.dzt{font-size:9px;display:inline-block;padding:1px 6px;border-radius:3px;margin-top:2px;font-family:var(--mn)}
+.dzt-c{background:var(--ordl);color:var(--ord)}
+.dzt-p{background:var(--inadml);color:var(--inadm)}
+
+/* STATUS */
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;margin-top:3px;font-family:var(--mn)}
+.stw{background:var(--grayl);color:var(--tx3)}
+.stl{background:var(--ordl);color:var(--ord)}
+.sto{background:var(--resl);color:var(--res)}
+.ste{background:var(--wal);color:var(--wa)}
+
+/* PROGRESS */
+.pb{width:100%;height:3px;background:var(--bdr);border-radius:2px;margin-top:4px;overflow:hidden;display:none}
+.pf{height:100%;background:var(--ac);border-radius:2px;transition:width .3s}
+
+/* ALERTS */
+.al{border-left:3px solid var(--ac);background:var(--acl);padding:.55rem .85rem;border-radius:0 6px 6px 0;font-size:11px;margin-bottom:.8rem;line-height:1.6}
+.al-w{border-left-color:var(--wa);background:var(--wal)}
+.al-i{border-left-color:var(--inadm);background:var(--inadml)}
+
+/* RESOLUCIONES BOX */
+.rb{background:var(--acl);border:1px solid var(--ac2);border-radius:8px;padding:.7rem .9rem;margin-top:.55rem;display:none}
+.rf{font-size:15px;font-weight:700;color:var(--ac);font-family:var(--mn)}
+
+/* DEPENDENCIAS DESCONOCIDAS */
+.du{background:var(--wal);border:1px solid #E8B97A;border-radius:8px;padding:.7rem .9rem;margin-top:.55rem;display:none}
+.du-item{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+.du-item label{font-size:11px;font-family:var(--mn);color:var(--wa);min-width:55px}
+
+/* INPUTS */
+select,input[type=text]{font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--bdr2);background:var(--sur);color:var(--tx);cursor:pointer;font-family:var(--sn)}
+select:focus,input:focus{outline:2px solid var(--ac2);outline-offset:1px}
+
+/* BOTONES */
+.btn{background:transparent;border:1px solid var(--bdr2);border-radius:6px;padding:5px 11px;font-size:11px;cursor:pointer;color:var(--tx2);display:inline-flex;align-items:center;gap:4px;font-family:var(--sn);transition:all .15s}
+.btn:hover{background:var(--bg);color:var(--tx)}
+.btn-p{background:var(--ac);color:#fff;border-color:var(--ac)}.btn-p:hover{background:var(--ac2)}
+.btn-e{background:#1C3E2E;color:#fff;border-color:#1C3E2E}.btn-e:hover{background:var(--ac)}
+.btn-b{background:#1A3A6B;color:#fff;border-color:#1A3A6B}.btn-b:hover{background:var(--ord)}
+
+/* MISC */
+.sb{display:flex;gap:7px;margin-bottom:.7rem;flex-wrap:wrap}
+.sb input{flex:1;min-width:130px}
+.rg{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.7rem}
+.tag{font-size:10px;background:var(--bg);color:var(--tx3);padding:1px 5px;border-radius:3px;display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;font-family:var(--mn)}
+.nota{font-size:10px;color:var(--tx3);margin-top:5px;font-style:italic;font-family:var(--mn)}
+.bw{display:flex;align-items:center;gap:4px}
+.bb{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;min-width:22px}
+.bf{height:100%;border-radius:3px}
+.empty{text-align:center;padding:2.5rem;color:var(--tx3);font-size:12px}
+
+/* ACTIVE FILTER INDICATOR */
+.filt-active-badge{font-size:9px;background:var(--ac);color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px;font-family:var(--mn)}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="hdr-t">Oficina de Gestión — Fuero Laboral Córdoba</div>
+    <div class="hdr-s">Sistema de análisis y reporting judicial</div>
+  </div>
+  <div class="hdr-b" id="hdr-f">—</div>
+</div>
+<div class="lay">
+<nav class="sid">
+  <div class="ns">Datos</div>
+  <div class="ni active" onclick="GT('arch',this)"><span class="ni-ic">📂</span>Archivos</div>
+  <div class="ns">Análisis</div>
+  <div class="ni" onclick="GT('stock',this)"><span class="ni-ic">📊</span>Stock activo</div>
+  <div class="ni" onclick="GT('pend',this)"><span class="ni-ic">📋</span>Pendientes</div>
+  <div class="ni" onclick="GT('cruce',this)"><span class="ni-ic">🔀</span>Cruce</div>
+  <div class="ns">Exportar</div>
+  <div class="ni" onclick="GT('exp1',this)"><span class="ni-ic">📄</span>Activos completos</div>
+  <div class="ni" onclick="GT('exp2',this)"><span class="ni-ic">📋</span>Pendientes</div>
+  <div class="ns">Extra</div>
+  <div class="ni" onclick="GT('txt',this)"><span class="ni-ic">✏</span>Texto (opc.)</div>
+</nav>
+<main class="main">
+
+<!-- ARCHIVOS -->
+<div id="arch" class="sec active">
+  <div class="pt">Carga de archivos</div>
+  <div class="ps">Tabla de equivalencias embebida — subís los datos frescos cada vez</div>
+  <div class="card">
+    <div class="ct">Archivos que cambian en cada consulta</div>
+    <div class="dz" onclick="document.getElementById('fs').click()" ondrop="DR(event,'s')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="fs" accept=".xlsx" onchange="LF(this,'s')">
+      <div class="dzi">📊</div><div class="dzl">Stock activo (Power BI)</div>
+      <div class="dzs">Expedientes_por_Tipos_de_Juicio…xlsx</div>
+      <div class="dzt dzt-c">subir cada vez</div>
+      <div id="st-s" class="st stw">⏳ Pendiente</div>
+    </div>
+    <div class="dz" onclick="document.getElementById('fp').click()" ondrop="DR(event,'p')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="fp" accept=".xlsx" onchange="LF(this,'p')">
+      <div class="dzi">📋</div><div class="dzl">Pendientes (portal) — carátulas e instructores</div>
+      <div class="dzs">pendientes_tgas…xlsx</div>
+      <div class="dzt dzt-c">subir cada vez</div>
+      <div id="st-p" class="st stw">⏳ Pendiente</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Resoluciones históricas — actualizar cuando haya novedades</div>
+    <div class="dz" onclick="document.getElementById('fr').click()" ondrop="DR(event,'r')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="fr" accept=".csv" onchange="LF(this,'r')">
+      <div class="dzi">⚖️</div><div class="dzl">CSV Capital / VMA / SF / RC</div>
+      <div class="dzs">JuicioConciliacionOtrosModos.csv — separador ; latin-1</div>
+      <div class="dzt dzt-p">actualizar periódicamente</div>
+      <div id="st-r" class="st stw">⏳ Pendiente</div>
+      <div class="pb" id="pb-r"><div class="pf" id="pf-r" style="width:0%"></div></div>
+    </div>
+    <div class="dz" onclick="document.getElementById('fm').click()" ondrop="DR(event,'m')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="fm" accept=".xlsx" onchange="LF(this,'m')">
+      <div class="dzi">🗺️</div><div class="dzl">Excel multifuero (otras localidades)</div>
+      <div class="dzs">Operaciones_por_Grupo…xlsx — filtrado por fuero laboral</div>
+      <div class="dzt dzt-p">según consulta</div>
+      <div id="st-m" class="st stw">⏳ Pendiente</div>
+    </div>
+    <div class="rb" id="rb">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;font-family:var(--mn)">Historial — última resolución</div>
+          <div class="rf" id="rb-f">—</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px;font-family:var(--mn)">Si tiene más de 30 días, actualizá el archivo</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--tx3);font-family:var(--mn)">Causas en historial</div>
+          <div style="font-size:17px;font-weight:700;font-family:var(--mn);color:var(--ac)" id="rb-n">—</div>
+          <div style="font-size:10px;color:var(--tx3);font-family:var(--mn)" id="rb-src">—</div>
+        </div>
+      </div>
+      <div id="rb-av" style="display:none;margin-top:7px;font-size:11px;color:var(--wa)">⚠ Historial con más de 30 días. Considerá actualizarlo.</div>
+    </div>
+    <div class="du" id="du">
+      <div style="font-size:11px;font-weight:600;color:var(--wa);margin-bottom:3px">⚠ Dependencias no reconocidas en el archivo multifuero</div>
+      <div style="font-size:11px;color:var(--wa);margin-bottom:5px">Ingresá un nombre corto para cada una:</div>
+      <div id="du-items"></div>
+      <div style="margin-top:7px"><button class="btn btn-p" onclick="confirmDU()" style="font-size:11px">✓ Confirmar nombres</button></div>
+    </div>
+  </div>
+  <div class="rg">
+    <button class="btn btn-p" onclick="PROC()">▶ Procesar todo</button>
+    <div id="mp" style="font-size:11px;color:var(--tx3);font-family:var(--mn)"></div>
+  </div>
+  <div class="card">
+    <div class="ct">Lógica de estados procesales</div>
+    <table><thead><tr><th>Tipo de resolución</th><th>Estado</th></tr></thead><tbody>
+      <tr><td>Sentencia / Sentencia con allanamiento / Sentencia ejecutivos</td><td><span class="chip cr">Resuelto</span></td></tr>
+      <tr><td>Acuerdo (Sentencia Homologación)</td><td><span class="chip cr">Resuelto</span></td></tr>
+      <tr><td>Desistimiento (todas las formas)</td><td><span class="chip cr">Resuelto</span></td></tr>
+      <tr><td>Sumaria Información (Auto) / Modos anorm. (cargas antiguas)</td><td><span class="chip cr">Resuelto</span></td></tr>
+      <tr><td>Inadmisibilidad de la demanda (decreto)</td><td><span class="chip ci">Inadmisibilidad/revisar</span></td></tr>
+      <tr><td>Sin registro en el historial</td><td><span class="chip cs">Sin resolución</span></td></tr>
+    </tbody></table>
+    <p class="nota">Base de análisis: STOCK activo. Pendientes: aporta carátula, instructor y última operación.</p>
+  </div>
+</div>
+
+<!-- STOCK -->
+<div id="stock" class="sec">
+  <div class="pt">Stock activo <span id="stock-filt-badge" class="filt-active-badge" style="display:none">Filtrado</span></div>
+  <div class="ps">Base: stock Power BI  -  cruce con resoluciones  -  detalle desde pendientes</div>
+  <div id="stock-c"><div class="empty">Cargá los archivos y procesá.</div></div>
+</div>
+
+<!-- PENDIENTES -->
+<div id="pend" class="sec">
+  <div class="pt">Pendientes de resolución <span id="pend-filt-badge" class="filt-active-badge" style="display:none">Filtrado</span></div>
+  <div class="ps">Base: archivo de pendientes del portal</div>
+  <div id="pend-c"><div class="empty">Cargá el archivo de pendientes y procesá.</div></div>
+</div>
+
+<!-- CRUCE -->
+<div id="cruce" class="sec">
+  <div class="pt">Cruce — estado procesal</div>
+  <div class="ps">Stock activo cruzado con historial de resoluciones</div>
+  <div id="cruce-c"><div class="empty">Procesá los archivos primero.</div></div>
+</div>
+
+<!-- EXPORT 1 -->
+<div id="exp1" class="sec">
+  <div class="pt">Exportar — Activos completos</div>
+  <div class="ps">Base: stock activo  -  Estado desde resoluciones  -  Carátula/instructor desde pendientes</div>
+  <div class="card"><div class="ct">Filtrar listado</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div class="rg">
+        <label style="font-size:11px;color:var(--tx3)">Dependencia:</label>
+        <select id="e1-dep" onchange="E1filt()" style="min-width:140px"><option value="">Todas</option></select>
+        <label style="font-size:11px;color:var(--tx3)">Estado:</label>
+        <select id="e1-est" onchange="E1filt()">
+          <option value="">Todos</option><option>Sin resolución</option><option>Resuelto</option><option>Inadmisibilidad/revisar</option>
+        </select>
+        <label style="font-size:11px;color:var(--tx3)">Proceso:</label>
+        <select id="e1-proc" onchange="E1filt()">
+          <option value="">Todos</option><option>Ordinario</option><option>PDA</option><option>Especiales</option><option>Otros</option>
+        </select>
+      </div>
+      <div class="rg">
+        <label style="font-size:11px;color:var(--tx3)">Fecha del listado:</label>
+        <input type="text" id="e1-fecha" placeholder="DD/MM/AAAA" style="width:110px">
+      </div>
+      <div id="e1-prev" style="font-size:11px;color:var(--tx3);font-family:var(--mn)"></div>
+      <div class="rg">
+        <button class="btn btn-e" onclick="EXP1()">⬇ Exportar Excel</button>
+        <button class="btn" onclick="PRV1()">👁 Previsualizar</button>
+      </div>
+    </div>
+  </div>
+  <div id="e1-wrap"></div>
+</div>
+
+<!-- EXPORT 2 -->
+<div id="exp2" class="sec">
+  <div class="pt">Exportar — Pendientes</div>
+  <div class="ps">Base: archivo de pendientes del portal  -  Tipo de proceso cruzado con stock</div>
+  <div class="card"><div class="ct">Filtrar listado</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div class="rg">
+        <label style="font-size:11px;color:var(--tx3)">Dependencia:</label>
+        <select id="e2-dep" onchange="E2filt()" style="min-width:140px"><option value="">Todas</option></select>
+        <label style="font-size:11px;color:var(--tx3)">Proceso:</label>
+        <select id="e2-proc" onchange="E2filt()">
+          <option value="">Todos</option><option>Ordinario</option><option>PDA</option><option>Especiales</option><option>Otros</option>
+        </select>
+      </div>
+      <div class="rg">
+        <label style="font-size:11px;color:var(--tx3)">Fecha del listado:</label>
+        <input type="text" id="e2-fecha" placeholder="DD/MM/AAAA" style="width:110px">
+      </div>
+      <div id="e2-prev" style="font-size:11px;color:var(--tx3);font-family:var(--mn)"></div>
+      <div class="rg">
+        <button class="btn btn-b" onclick="EXP2()">⬇ Exportar Excel</button>
+        <button class="btn" onclick="PRV2()">👁 Previsualizar</button>
+      </div>
+    </div>
+  </div>
+  <div id="e2-wrap"></div>
+</div>
+
+<!-- TEXTO -->
+<div id="txt" class="sec">
+  <div class="pt">Generador de texto</div>
+  <div class="ps">Opcional — párrafos de análisis para informe</div>
+  <div class="card"><div class="ct">Configurar</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div><label style="font-size:11px;color:var(--tx3);display:block;margin-bottom:3px">¿Qué necesito?</label>
+      <select id="it" style="width:100%">
+        <option value="a">Resumen ejecutivo completo</option>
+        <option value="b">Análisis del stock activo</option>
+        <option value="c">Análisis de pendientes</option>
+        <option value="d">Comparativo entre dependencias</option>
+        <option value="e">Situación TGA 5 (vacante)</option>
+        <option value="f">Informe semestral estructurado</option>
+      </select></div>
+      <div><label style="font-size:11px;color:var(--tx3);display:block;margin-bottom:3px">Período</label>
+      <select id="ip" style="width:100%"><option>Datos al 26/05/2026</option><option>Primer semestre 2026</option><option>Año judicial 2026</option></select></div>
+      <div><label style="font-size:11px;color:var(--tx3);display:block;margin-bottom:3px">Destinatario</label>
+      <select id="id2" style="width:100%"><option>Interno — administrativo y técnico</option><option>Autoridades del Poder Judicial</option><option>Informe público</option></select></div>
+      <div class="al" style="font-size:11px">Copiá el texto del cuadro y pegalo en el chat de Claude con tu pedido de redacción.</div>
+      <button class="btn btn-p" style="align-self:flex-start" onclick="GD()">📋 Copiar datos para Claude</button>
+      <textarea id="txt-out" style="width:100%;height:150px;font-size:11px;font-family:var(--mn);border:1px solid var(--bdr2);border-radius:6px;padding:7px;background:var(--bg);resize:vertical;color:var(--tx)" readonly placeholder="Los datos aparecerán acá después de procesar…"></textarea>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ===== PALETA =====
+const C = {
+  ord:'#1A56B0', pda:'#1A7A3C', esp:'#6B3FA0', ot:'#B07A00',
+  res:'#1A7A3C', sinr:'#1A56B0', inadm:'#B07A00', gray:'#9B9A94',
+  // tipo expte
+  elec:'#2563EB', papel:'#92400E', mixto:'#6B3FA0',
+  // ubicacion
+  casillero:'#1A56B0', despacho:'#1A7A3C', prestado:'#B07A00',
+  fallo:'#6B3FA0', estudio:'#0891B2', sininfo:'#9B9A94',
+  archivo:'#78350F', externo:'#374151'
+};
+const CP_PROC = [C.ord, C.pda, C.esp, C.ot];
+const CP_EST  = [C.sinr, C.inadm, C.res];
+const NP = ['Ordinario','PDA','ESPECIALES','Otros'];
+const NP_DISP = ['Ordinario','PDA','Especiales','Otros'];
+
+// ===== MAPAS EMBEBIDOS =====
+const MP = {"5":"Especiales","6":"Especiales","7":"Especiales","9":"Otros","28":"Especiales","29":"Otros","30":"Especiales","31":"Otros","32":"Otros","33":"Otros","34":"Otros","35":"Otros","36":"Otros","37":"Otros","38":"Otros","39":"Otros","40":"Otros","41":"Otros","42":"Otros","57":"Especiales","58":"Especiales","64":"Otros","67":"Otros","70":"Otros","71":"Otros","74":"Especiales","75":"Ordinario","76":"Especiales","77":"Especiales","78":"Especiales","79":"Especiales","80":"Otros","81":"Ordinario","82":"Ordinario","83":"Ordinario","84":"Otros","85":"Especiales","86":"Especiales","87":"Otros","88":"Otros","89":"Otros","91":"Otros","92":"Otros","93":"Especiales","94":"Otros","95":"Especiales","96":"Especiales","97":"Especiales","98":"Otros","99":"Otros","100":"Otros","101":"Otros","102":"Otros","103":"Otros","104":"Otros","107":"Especiales","108":"Otros","109":"Especiales","110":"Especiales","111":"Especiales","112":"Otros","113":"Otros","114":"Otros","116":"Otros","117":"Ordinario","118":"Otros","119":"Otros","120":"Otros","121":"Especiales","122":"Especiales","123":"Especiales","124":"Especiales","125":"Otros","127":"Especiales","128":"Especiales","129":"Especiales","130":"Otros","131":"Especiales","133":"Especiales","134":"Especiales","135":"Otros","136":"Especiales","137":"Especiales","138":"Especiales","139":"Ordinario","140":"Otros","141":"Otros","143":"Especiales","144":"Especiales","145":"Otros","147":"Otros","149":"Otros","151":"Otros","155":"Especiales","160":"Otros","161":"Ordinario","165":"Otros","171":"Otros","172":"Otros","173":"Otros","174":"Otros","176":"Otros","177":"Otros","189":"Especiales","190":"Otros","191":"Especiales","192":"Otros","193":"Otros","194":"Otros","195":"Otros","197":"Especiales","199":"Otros","201":"Especiales","217":"Otros","220":"Otros","226":"Otros","238":"Otros","240":"Otros","241":"Ordinario","242":"Otros","246":"Otros","272":"Otros","285":"Otros","286":"Especiales","290":"Especiales","304":"Otros","306":"Especiales","307":"Otros","308":"Otros","309":"Otros","310":"Otros","311":"Otros","312":"Otros","313":"Otros","314":"Especiales","315":"Especiales","316":"Especiales","317":"Especiales","318":"Especiales","319":"Ordinario","320":"Otros","321":"Ordinario","322":"Ordinario","323":"Ordinario","324":"Ordinario","325":"Ordinario","326":"Ordinario","327":"Ordinario","328":"Ordinario","329":"Ordinario","330":"Ordinario","331":"Ordinario","332":"Ordinario","333":"Ordinario","334":"Ordinario","335":"Especiales","336":"Especiales","337":"Especiales","338":"Especiales","339":"Especiales","340":"Otros","341":"Especiales","342":"Otros","343":"Ordinario","344":"Ordinario","376":"Especiales","378":"Especiales","389":"Otros","390":"Otros","391":"Otros","392":"Otros","393":"Otros","394":"Otros","395":"Otros","396":"Otros","397":"Otros","403":"Especiales","410":"Otros","411":"Especiales","415":"Otros","417":"Otros","419":"Especiales","420":"Otros","423":"Otros","424":"Otros","425":"Otros","426":"Otros","427":"Otros","428":"Otros","432":"Otros","436":"Otros","437":"Especiales","438":"Otros","439":"Otros","441":"Otros","442":"Otros","443":"Otros","446":"Especiales","447":"Especiales","449":"Especiales","451":"Especiales","458":"Especiales","460":"Especiales","461":"Especiales","462":"Especiales","463":"Especiales","464":"Especiales","465":"Especiales","487":"Ordinario","488":"Ordinario","489":"Ordinario","490":"Ordinario","491":"Ordinario","493":"Ordinario","502":"Especiales","504":"Especiales","519":"Otros","528":"Especiales","533":"Otros","534":"Otros","538":"Especiales","541":"Ordinario","542":"Ordinario","548":"Ordinario","552":"Otros","587":"Otros","591":"Otros","592":"Otros","595":"Otros","598":"Otros","601":"Especiales","602":"Especiales","603":"Especiales","604":"Especiales","607":"Especiales","608":"Especiales","612":"Especiales","613":"Especiales","614":"Otros","615":"Otros","616":"Otros","618":"Otros","619":"Otros","622":"Especiales","625":"Especiales","627":"Especiales","628":"Especiales","629":"Especiales","631":"Otros","634":"Otros","635":"Otros","640":"Otros","641":"Otros","642":"Especiales","643":"Otros","644":"Ordinario","677":"Especiales","678":"Especiales","679":"Especiales","680":"Especiales","681":"Especiales","682":"Especiales","683":"Especiales","685":"Especiales","690":"Otros","694":"Especiales","695":"Otros","698":"Especiales","701":"Especiales","708":"Especiales","709":"Especiales","713":"Otros","716":"Otros","722":"Otros","723":"Otros","724":"Otros","727":"Otros","750":"Otros","752":"Otros","754":"Especiales","755":"Otros","759":"Especiales","760":"Otros","796":"Especiales","797":"Otros","799":"Otros","809":"PDA","810":"Especiales","811":"Especiales","812":"Otros","814":"Otros","817":"Especiales","826":"Especiales","864":"Especiales","865":"Especiales","871":"Otros","886":"Otros","889":"Otros","893":"Especiales","895":"Otros","897":"Especiales","898":"Otros","899":"Otros","901":"Otros","902":"Especiales","903":"Especiales","905":"Especiales","906":"Otros","907":"Otros","908":"Otros","912":"Ordinario","913":"Ordinario","914":"Ordinario","915":"Ordinario","916":"Ordinario","917":"Ordinario","918":"Ordinario","919":"Ordinario","920":"Ordinario","921":"Ordinario","922":"Ordinario","924":"Especiales","928":"Especiales","929":"Especiales","932":"Especiales","892":"PDA","808":"PDA","939":"PDA","940":"Otros"};
+const MD = {"245":"JUZG C y T 1a NOM","246":"JUZG C y T 1a NOM","247":"JUZG C y T 2a NOM","248":"JUZG C y T 2a NOM","249":"JUZG C y T 3a NOM","250":"JUZG C y T 3a NOM","251":"JUZG C y T 4a NOM","252":"JUZG C y T 4a NOM","253":"JUZG C y T 5a NOM","254":"JUZG C y T 5a NOM","255":"JUZG C y T 6a NOM","256":"JUZG C y T 6a NOM","257":"JUZG C y T 7a NOM","258":"JUZG C y T 7a NOM","259":"JUZG C y T 8a NOM","260":"JUZG C y T 8a NOM","261":"JUZG C y T 9a NOM","262":"JUZG C y T 9a NOM","263":"JUZG C y T 10a NOM","264":"JUZG C y T 10a NOM","680":"Juzg. C y T Río 4 2da","162":"Juzg. C y T Villa María","1146":"TGA 1 - Juez 2","1147":"TGA 4 - Juez 9","1148":"TGA 1 - Juez 11","1149":"TGA 1 - Juez 12","1150":"TGA 1 - Juez 13","1259":"TGA 2 - Juez 4","1260":"TGA 2 - Juez 8","1261":"TGA 2 - Juez 14","1262":"TGA 4 - Juez 15","1263":"TGA 2 - Juez 16","1279":"TGA 3 - Juez 5","1280":"TGA 3 - Juez 6","1281":"TGA 5 - Juez 17","1282":"TGA 3 - Juez 18","1283":"TGA 3 - Juez 19","1349":"TGA 4 - Juez 1","1350":"TGA 4 - Juez 3","1364":"TGA 5 - Juez 7","1365":"TGA 5 - Juez 10"};
+const MU = {"1":"Casillero","2":"Despacho","3":"Prestado","4":"A Fallo","5":"A Estudio","6":"S/Información","8":"Pre-Archivo Of.","9":"Relatoría","10":"Diligenciándose","11":"En Archivo","12":"Casillero Externo"};
+const MTE = {"1":"Electrónico","2":"Papel","3":"Mixto"};
+const MM = {"enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,"julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12};
+const INADM = ['Inadmisibilidad de la demanda (decreto)'];
+
+// ===== ESTADO GLOBAL =====
+let D = {s:null,p:null};
+let MR = {}, FMX = null, DC = {}, DP = [];
+let CH = {}, _rows = [], _pend = [];
+// Filtros activos
+let FA = {deps:[], procs:[], ests:[]};
+
+// ===== HELPERS =====
+const gE = t => INADM.includes(t)?'Inadmisibilidad/revisar':t?'Resuelto':'Sin resolución';
+const gP = id => MP[String(Math.round(Number(id)||0))]||'Otros';
+const gDep = id => { const k=String(id); return DC[k]||MD[k]||null; };
+const pt = (v,t) => t>0?Math.round(v/t*1000)/10:0;
+const fm = n => Number(n).toLocaleString('es-AR');
+const fmD = d => { if(!d)return''; try{const x=new Date(d);return isNaN(x)?String(d):x.toLocaleDateString('es-AR')}catch{return String(d)} };
+const gR = id => MR[String(id).trim()]||null;
+const ss = (t,c,m) => { const el=document.getElementById('st-'+t); if(el){el.className='st '+c;el.textContent=m;} };
+
+// Filtrar _rows según FA
+function rowsFilt() {
+  return _rows.filter(r => {
+    if(FA.deps.length && !FA.deps.includes(r.dep)) return false;
+    if(FA.procs.length && !FA.procs.includes(r.proc)) return false;
+    if(FA.ests.length && !FA.ests.includes(r.est)) return false;
+    return true;
+  });
+}
+function pendFilt() {
+  return _pend.filter(r => {
+    if(FA.deps.length && !FA.deps.includes(r.dep)) return false;
+    if(FA.procs.length && !FA.procs.includes(r.proc)) return false;
+    return true;
+  });
+}
+
+// ===== DRAG & DROP =====
+const OV = e => { e.preventDefault(); e.currentTarget.classList.add('ov'); };
+const OL = e => e.currentTarget.classList.remove('ov');
+function DR(e,t){ e.preventDefault(); e.currentTarget.classList.remove('ov'); const f=e.dataTransfer.files[0]; if(f)LF({files:[f]},t); }
+function LF(inp,t){ const f=inp.files[0]; if(!f)return; t==='r'?lCSV(f):t==='m'?lMulti(f):lXLSX(f,t); }
+
+function lXLSX(file,tipo){
+  ss(tipo,'stl','⏳ Leyendo…');
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      let rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      let hr=0,mx=0;
+      for(let i=0;i<Math.min(5,rows.length);i++){const f=rows[i].filter(c=>c!=='').length;if(f>mx){mx=f;hr=i;}}
+      const hdrs=rows[hr].map(h=>String(h).trim());
+      D[tipo]=rows.slice(hr+1).filter(r=>r.some(c=>c!=='')).map(row=>{const o={};hdrs.forEach((h,i)=>{o[h]=row[i]??''});return o;});
+      ss(tipo,'sto','✓ '+D[tipo].length.toLocaleString('es-AR')+' registros');
+    }catch(err){ss(tipo,'ste','✗ Error');}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function lMulti(file){
+  ss('m','stl','⏳ Leyendo…');
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      let rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      let hr=0,mx=0;
+      for(let i=0;i<Math.min(5,rows.length);i++){const f=rows[i].filter(c=>c!=='').length;if(f>mx){mx=f;hr=i;}}
+      const hdrs=rows[hr].map(h=>String(h).trim());
+      const data=rows.slice(hr+1).filter(r=>r.some(c=>c!=='')).map(row=>{const o={};hdrs.forEach((h,i)=>{o[h]=row[i]??''});return o;});
+      const sorted=data.map(r=>({
+        id:String(r['idExpediente']||'').trim(),
+        tipo:String(r['Tipo Operacion']||r['TipoOperacion']||'').trim(),
+        anio:Number(r['Fecha - Año']||0),
+        mes:Number(r['mes número']||r['mes numero']||MM[String(r['Fecha - Mes']||'').toLowerCase()]||0),
+        idDep:String(r['idDependencia']||'').trim()
+      })).filter(r=>r.id&&r.tipo).sort((a,b)=>{
+        if(a.id<b.id)return -1; if(a.id>b.id)return 1;
+        if(b.anio!==a.anio)return b.anio-a.anio;
+        return b.mes-a.mes;
+      });
+      const seen=new Set(); let nuevas=0; let fmx=null;
+      for(const row of sorted){
+        if(!seen.has(row.id)){
+          seen.add(row.id);
+          if(!MR[row.id]){ MR[row.id]={t:row.tipo,f:String(row.anio)}; nuevas++; }
+          if(row.anio>0){ const fd=new Date(row.anio,row.mes-1,1); if(!fmx||fd>fmx)fmx=fd; if(!FMX||fd>FMX)FMX=fd; }
+        }
+      }
+      const idsD=[...new Set(data.map(r=>String(r['idDependencia']||'').trim()).filter(id=>id&&!MD[id]&&!DC[id]))];
+      DP=idsD;
+      ss('m','sto','✓ '+nuevas.toLocaleString('es-AR')+' causas nuevas');
+      updRB();
+      if(idsD.length>0){
+        const box=document.getElementById('du'); box.style.display='block';
+        document.getElementById('du-items').innerHTML=idsD.map(function(id){return '<div class="du-item"><label>ID '+id+':</label><input type="text" id="du-'+id+'" placeholder="Ej: Of. Conc. Jesus Maria"/></div>';}).join('');
+      }
+    }catch(err){ss('m','ste','✗ Error');console.error(err);}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function confirmDU(){ DP.forEach(id=>{const inp=document.getElementById('du-'+id); DC[id]=inp&&inp.value.trim()?inp.value.trim():'Dep. '+id;}); document.getElementById('du').style.display='none'; DP=[]; }
+
+function lCSV(file){
+  ss('r','stl','⏳ Leyendo CSV…');
+  document.getElementById('pb-r').style.display='block';
+  const r=new FileReader();
+  r.onprogress=e=>{if(e.lengthComputable)document.getElementById('pf-r').style.width=Math.round(e.loaded/e.total*100)+'%';};
+  r.onload=e=>{
+    try{
+      ss('r','stl','⚙ Procesando…');
+      setTimeout(()=>{
+        const bytes=new Uint8Array(e.target.result);
+        let txt=''; for(let i=0;i<bytes.length;i++)txt+=String.fromCharCode(bytes[i]);
+        const lines=txt.split('\n').filter(l=>l.trim());
+        const sep=lines[0].includes(';')?';':',';
+        const hdrs=lines[0].split(sep).map(h=>h.replace(/^"|"$/g,'').trim());
+        const iI=hdrs.indexOf('idExpediente'),iF=hdrs.indexOf('FechaOperacion'),iT=hdrs.indexOf('TipoOperacion');
+        const tmp={}; let fmx=null;
+        for(let i=1;i<lines.length;i++){
+          const c=lines[i].split(sep).map(x=>x.replace(/^"|"$/g,'').trim());
+          if(!c[iI]||!c[iT])continue;
+          const fm2=c[iF]?.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+          const fd=fm2?new Date(fm2[3]+'-'+fm2[2]+'-'+fm2[1]):null;
+          if(fd&&(!fmx||fd>fmx))fmx=fd;
+          if(!tmp[c[iI]]||!tmp[c[iI]].fd||(fd&&fd>tmp[c[iI]].fd)) tmp[c[iI]]={t:c[iT],f:c[iF]?.substring(0,10)||'',fd};
+        }
+        let n=0; for(const k in tmp){ if(!MR[k]){ MR[k]={t:tmp[k].t,f:tmp[k].f}; n++; } }
+        if(fmx&&(!FMX||fmx>FMX))FMX=fmx;
+        document.getElementById('pb-r').style.display='none';
+        ss('r','sto','✓ '+n.toLocaleString('es-AR')+' causas del CSV');
+        updRB();
+      },50);
+    }catch(err){document.getElementById('pb-r').style.display='none';ss('r','ste','✗ Error');console.error(err);}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function updRB(){
+  const n=Object.keys(MR).length; if(!n)return;
+  const box=document.getElementById('rb'); box.style.display='block';
+  document.getElementById('rb-n').textContent=n.toLocaleString('es-AR');
+  const src=[];
+  if(document.getElementById('st-r').textContent.startsWith('✓'))src.push('CSV Capital/VMA/SF/RC');
+  if(document.getElementById('st-m').textContent.startsWith('✓'))src.push('Excel multifuero');
+  document.getElementById('rb-src').textContent=src.join(' + ')||'—';
+  if(FMX){
+    const dd=String(FMX.getDate()).padStart(2,'0'),mm=String(FMX.getMonth()+1).padStart(2,'0');
+    document.getElementById('rb-f').textContent='Actualizado al '+dd+'/'+mm+'/'+FMX.getFullYear();
+    document.getElementById('hdr-f').textContent='Historial al '+dd+'/'+mm+'/'+FMX.getFullYear();
+    document.getElementById('rb-av').style.display=((new Date()-FMX)/864e5)>30?'block':'none';
+  }
+}
+
+// ===== PROCESAR =====
+function PROC(){
+  const mp=document.getElementById('mp');
+  if(!D.s){mp.textContent='⚠ El archivo de stock es obligatorio.';return;}
+  if(DP.length>0){mp.textContent='⚠ Confirmá los nombres de dependencias desconocidas primero.';return;}
+  if(!Object.keys(MR).length){
+    mp.innerHTML='⚠ Sin historial de resoluciones. <span style="cursor:pointer;text-decoration:underline;color:var(--ac)" onclick="PROCsr()">Continuar sin cruce</span>';
+    return;
+  }
+  mp.textContent='Procesando…';
+  setTimeout(()=>{
+    FA={deps:[],procs:[],ests:[]};
+    buildRows(); buildPend();
+    buildStock(); buildPendView(); buildCruce();
+    pobExp1(); pobExp2();
+    document.getElementById('e1-fecha').value=new Date().toLocaleDateString('es-AR');
+    document.getElementById('e2-fecha').value=new Date().toLocaleDateString('es-AR');
+    const fl=FMX?FMX.toLocaleDateString('es-AR'):'—';
+    mp.textContent='✓ Listo. '+Object.keys(MR).length.toLocaleString('es-AR')+' resoluciones al '+fl+'.';
+  },80);
+}
+
+function PROCsr(){
+  document.getElementById('mp').textContent='Procesando…';
+  setTimeout(()=>{FA={deps:[],procs:[],ests:[]};buildRows();buildPend();buildStock();buildPendView();buildCruce();pobExp1();pobExp2();document.getElementById('e1-fecha').value=new Date().toLocaleDateString('es-AR');document.getElementById('e2-fecha').value=new Date().toLocaleDateString('es-AR');document.getElementById('mp').textContent='✓ Listo (sin historial).';},80);
+}
+
+// ===== BUILD ROWS =====
+function buildRows(){
+  const pIdx={};
+  if(D.p){ D.p.forEach(r=>{ const k=String(r['Nro. Expediente']||r['NroExpediente']||r['idExpediente']||'').trim(); if(k)pIdx[k]=r; }); }
+  _rows=[];
+  (D.s||[]).forEach(r=>{
+    const idE=String(r['idExpediente']||r['IdExpediente']||'').trim();
+    const idD=String(r['idDependencia']||r['IdDependencia']||'').trim();
+    const idTJ=String(r['idTipoJuicio']||r['IdTipoJuicio']||'').trim();
+    const idU=String(r['idTipoUbicacion']||'').trim();
+    const idTE=String(r['idTipoExpediente']||r['IdTipoExpediente']||'').trim();
+    const dep=gDep(idD)||String(r['Dependencias']||r['Dependencia']||'');
+    const proc=gP(idTJ);
+    const tj=String(r['Tipo de Juicio, Grupos y Dependencias']||r['TipoJuicio']||'');
+    const ubic=MU[idU]||'';
+    const tipoExpe=MTE[idTE]||'';
+    const res=gR(idE);
+    const est=gE(res?.t||'');
+    const p=pIdx[idE]||{};
+    _rows.push({
+      idE,dep,proc,tj,ubic,tipoExpe,est,
+      tipoRes:res?.t||'',fechaRes:res?.f||'',
+      car:String(p['Caratula Expediente']||''),
+      ins:String(p['Emp. Instructor']||''),
+      uop:String(p['Tipo Operacion']||''),
+      fop:String(p['Fecha Inicio Op.']||''),
+      fi:String(p['Fecha Inicio Exp.']||'')
+    });
+  });
+}
+
+function buildPend(){
+  const sIdx={};
+  (D.s||[]).forEach(r=>{ const k=String(r['idExpediente']||r['IdExpediente']||'').trim(); if(k)sIdx[k]=r; });
+  _pend=[];
+  (D.p||[]).forEach(r=>{
+    const nro=String(r['Nro. Expediente']||r['NroExpediente']||r['idExpediente']||'').trim();
+    const dep=String(r['Dependencia']||'');
+    const sR=sIdx[nro];
+    const proc=sR?gP(String(sR['idTipoJuicio']||'')):'—';
+    const idU=sR?String(sR['idTipoUbicacion']||''):'';
+    const ubic=MU[idU]||'';
+    const idD=sR?String(sR['idDependencia']||''):'';
+    const depTrad=idD?(gDep(idD)||dep):dep;
+    _pend.push({nro,dep:depTrad,proc,tj:String(r['Tipo Juicio']||''),uop:String(r['Tipo Operacion']||''),fop:String(r['Fecha Inicio Op.']||''),fi:String(r['Fecha Inicio Exp.']||''),ins:String(r['Emp. Instructor']||''),car:String(r['Caratula Expediente']||''),ubic});
+  });
+}
+
+// ===== FILTROS POWER BI =====
+function tFilt(el) {
+  var tipo = el.getAttribute('data-tipo');
+  var valor = el.getAttribute('data-tipo')==='deps' ? decodeURIComponent(el.getAttribute('data-valor')) : el.getAttribute('data-valor');
+  toggleFiltro(tipo, valor, el);
+}
+function toggleFiltro(tipo, valor, el) {
+  const arr = FA[tipo];
+  const idx = arr.indexOf(valor);
+  if(idx >= 0) arr.splice(idx,1); else arr.push(valor);
+  el.classList.toggle('active');
+  actualizarVistas();
+}
+
+function limpiarFiltros() {
+  FA={deps:[],procs:[],ests:[]};
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+  actualizarVistas();
+}
+
+function actualizarVistas() {
+  // Actualizar badge
+  const total = FA.deps.length+FA.procs.length+FA.ests.length;
+  const badge = document.getElementById('stock-filt-badge');
+  if(badge) { badge.style.display = total>0?'inline':'none'; badge.textContent = total+' filtro'+(total>1?'s':''); }
+  renderStockContenido();
+}
+
+// ===== VISTA STOCK =====
+function buildStock(){
+  const deps=[...new Set(_rows.map(r=>r.dep))].sort();
+  // Construir barra de filtros
+  let filtHtml = '<div class="filt-bar">';
+  filtHtml += '<span class="filt-label">Proceso:</span>';
+  const clsProc = {Ordinario:'fc-ord',PDA:'fc-pda',Especiales:'fc-esp',Otros:'fc-ot'};
+  ['Ordinario','PDA','Especiales','Otros'].forEach(p=>{
+    filtHtml += '<span class="fchip '+clsProc[p]+'" data-tipo="procs" data-valor="'+p+'" onclick="tFilt(this)">'+p+'</span>';
+  });
+  filtHtml += '<div class="filt-sep"></div>';
+  filtHtml += '<span class="filt-label">Estado:</span>';
+  filtHtml += '<span class="fchip fc-sinr" data-tipo="ests" data-valor="Sin resoluci\u00f3n" onclick="tFilt(this)">Sin resoluci\u00f3n</span>';
+  filtHtml += '<span class="fchip fc-inadm" data-tipo="ests" data-valor="Inadmisibilidad/revisar" onclick="tFilt(this)">Inadmisibilidad</span>';
+  filtHtml += '<span class="fchip fc-res" data-tipo="ests" data-valor="Resuelto" onclick="tFilt(this)">Resuelto</span>';
+  filtHtml += '<div class="filt-sep"></div>';
+  filtHtml += '<span class="filt-label">Dependencia:</span>';
+  deps.forEach(d=>{
+    filtHtml += '<span class="fchip fc-dep" data-tipo="deps" data-valor="'+encodeURIComponent(d)+'" onclick="tFilt(this)" title="'+d+'">'+d.replace('TGA ','T').replace(' - ',' ')+'</span>';
+  });
+  filtHtml += '<button class="filt-clear" onclick="limpiarFiltros()">✕ Limpiar</button>';
+  filtHtml += '</div>';
+  document.getElementById('stock-c').innerHTML = filtHtml + '<div id="stock-body"></div>';
+  renderStockContenido();
+}
+
+function renderStockContenido(){
+  const rows = rowsFilt();
+  const hR = Object.keys(MR).length>0;
+  const total = rows.length;
+  if(!total){ document.getElementById('stock-body').innerHTML='<div class="empty">Sin causas con los filtros aplicados.</div>'; return; }
+
+  const tP={Ordinario:0,PDA:0,Especiales:0,Otros:0};
+  rows.forEach(r=>tP[r.proc]=(tP[r.proc]||0)+1);
+  const res=rows.filter(r=>r.est==='Resuelto').length;
+  const inadm=rows.filter(r=>r.est==='Inadmisibilidad/revisar').length;
+  const sinR=rows.filter(r=>r.est==='Sin resolución').length;
+  const deps=[...new Set(rows.map(r=>r.dep))].sort();
+  const fl=FMX?FMX.toLocaleDateString('es-AR'):'—';
+
+  // Agrupar dep->proc->estado
+  const bD={};
+  rows.forEach(r=>{
+    if(!bD[r.dep])bD[r.dep]={};
+    if(!bD[r.dep][r.proc])bD[r.dep][r.proc]={'Sin resolución':0,'Inadmisibilidad/revisar':0,'Resuelto':0};
+    bD[r.dep][r.proc][r.est]++;
+  });
+
+  let h = '<div class="mg">';
+  h += '<div class="m"><div class="ml">Causas</div><div class="mv">'+fm(total)+'</div><div class="ms">'+deps.length+' dep.</div></div>';
+  h += '<div class="m"><div class="ml"><span class="badge bo">Ordinario</span></div><div class="mv" style="font-size:17px;color:'+C.ord+'">'+fm(tP.Ordinario)+'</div><div class="ms">'+pt(tP.Ordinario,total)+'%</div></div>';
+  h += '<div class="m"><div class="ml"><span class="badge bp">PDA</span></div><div class="mv" style="font-size:17px;color:'+C.pda+'">'+fm(tP.PDA)+'</div><div class="ms">'+pt(tP.PDA,total)+'%</div></div>';
+  h += '<div class="m"><div class="ml"><span class="badge be">Especiales</span></div><div class="mv" style="font-size:17px;color:'+C.esp+'">'+fm(tP.Especiales)+'</div><div class="ms">'+pt(tP.Especiales,total)+'%</div></div>';
+  h += '<div class="m"><div class="ml"><span class="badge bt">Otros</span></div><div class="mv" style="font-size:17px;color:'+C.ot+'">'+fm(tP.Otros)+'</div><div class="ms">'+pt(tP.Otros,total)+'%</div></div>';
+  if(hR){
+    h += '<div class="m"><div class="ml">Resueltas</div><div class="mv" style="font-size:17px;color:'+C.res+'">'+fm(res)+'</div><div class="ms">'+pt(res,total)+'%</div></div>';
+    h += '<div class="m"><div class="ml">Inadmisibilidad</div><div class="mv" style="font-size:17px;color:'+C.inadm+'">'+fm(inadm)+'</div><div class="ms">'+pt(inadm,total)+'%</div></div>';
+    h += '<div class="m"><div class="ml">Sin resolución</div><div class="mv" style="font-size:17px;color:'+C.sinr+'">'+fm(sinR)+'</div><div class="ms">'+pt(sinR,total)+'%</div></div>';
+  }
+  h += '</div>';
+
+  // Gráficos
+  h += '<div class="two">';
+  h += '<div class="card"><div class="ct">Por tipo de proceso</div>';
+  h += '<div class="leg"><span><span class="lsq" style="background:'+C.ord+'"></span>Ordinario</span><span><span class="lsq" style="background:'+C.pda+'"></span>PDA</span><span><span class="lsq" style="background:'+C.esp+'"></span>Especiales</span><span><span class="lsq" style="background:'+C.ot+'"></span>Otros</span></div>';
+  h += '<div class="cw"><canvas id="sc1"></canvas></div></div>';
+  h += '<div class="card"><div class="ct">Estado procesal por dependencia</div>';
+  h += '<div class="leg"><span><span class="lsq" style="background:'+C.sinr+'"></span>Sin resolución</span><span><span class="lsq" style="background:'+C.inadm+'"></span>Inadmis.</span><span><span class="lsq" style="background:'+C.res+'"></span>Resueltas</span></div>';
+  h += '<div class="cw"><canvas id="sc2"></canvas></div></div></div>';
+
+  // Gráfico tipo expediente
+  const tTE={'Electrónico':0,'Papel':0,'Mixto':0,'—':0};
+  rows.forEach(r=>{const k=r.tipoExpe||'—';tTE[k]=(tTE[k]||0)+1;});
+  const ubics={};
+  rows.forEach(r=>{const k=r.ubic||'S/Info';ubics[k]=(ubics[k]||0)+1;});
+  const topUbics=Object.entries(ubics).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  h += '<div class="two">';
+  h += '<div class="card"><div class="ct">Tipo de expediente</div><div class="cw"><canvas id="sc_te"></canvas></div></div>';
+  h += '<div class="card"><div class="ct">Ubicación</div><div class="cw"><canvas id="sc_ub"></canvas></div></div></div>';
+
+  // Tabla dinámica
+  h += '<div class="card"><div class="ct">Detalle por dependencia — estado y tipo de proceso</div><div style="overflow-x:auto"><table>';
+  h += '<thead><tr><th style="min-width:160px">Dependencia / Proceso</th>';
+  h += '<th style="text-align:right;color:'+C.sinr+'">Sin resolución</th>';
+  if(hR) h += '<th style="text-align:right;color:'+C.inadm+'">Inadmis.</th>';
+  h += '<th style="text-align:right;color:'+C.res+'">Resuelto</th>';
+  h += '<th style="text-align:right">Total</th></tr></thead><tbody>';
+
+  deps.forEach(function(dep){
+    var totSin=0,totInadm=0,totRes=0;
+    ['Ordinario','PDA','Especiales','Otros'].forEach(function(p){
+      if(bD[dep]&&bD[dep][p]){totSin+=bD[dep][p]['Sin resolución']||0;totInadm+=bD[dep][p]['Inadmisibilidad/revisar']||0;totRes+=bD[dep][p]['Resuelto']||0;}
+    });
+    var totDep=totSin+totInadm+totRes;
+    h+='<tr class="trg"><td style="font-size:12px">'+dep+'</td>';
+    h+='<td style="text-align:right">'+(totSin||'')+'</td>';
+    if(hR) h+='<td style="text-align:right">'+(totInadm||'')+'</td>';
+    h+='<td style="text-align:right">'+(totRes||'')+'</td>';
+    h+='<td style="text-align:right"><strong>'+totDep+'</strong></td></tr>';
+    ['Ordinario','PDA','Especiales','Otros'].forEach(function(proc){
+      if(!bD[dep]||!bD[dep][proc])return;
+      var d=bD[dep][proc];
+      var sr=d['Sin resolución']||0,inn=d['Inadmisibilidad/revisar']||0,re=d['Resuelto']||0,tot=sr+inn+re;
+      if(!tot)return;
+      var clr={Ordinario:C.ord,PDA:C.pda,Especiales:C.esp,Otros:C.ot}[proc];
+      h+='<tr><td style="padding-left:20px;font-size:11px;color:'+clr+';font-weight:500">'+proc+'</td>';
+      h+='<td style="text-align:right">'+(sr||'')+'</td>';
+      if(hR) h+='<td style="text-align:right">'+(inn||'')+'</td>';
+      h+='<td style="text-align:right">'+(re||'')+'</td>';
+      h+='<td style="text-align:right">'+tot+'</td></tr>';
+    });
+  });
+
+  var gSin=0,gInadm=0,gRes=0;
+  rows.forEach(function(r){if(r.est==='Sin resolución')gSin++;else if(r.est==='Inadmisibilidad/revisar')gInadm++;else if(r.est==='Resuelto')gRes++;});
+  h+='<tr class="trt"><td>Total</td><td style="text-align:right">'+gSin+'</td>';
+  if(hR) h+='<td style="text-align:right">'+(gInadm||'')+'</td>';
+  h+='<td style="text-align:right">'+gRes+'</td><td style="text-align:right">'+total+'</td></tr>';
+  h+='</tbody></table></div>';
+  var carCount=rows.filter(function(r){return r.car;}).length;
+  h+='<p class="nota">'+(hR?'Cruce con historial al '+fl+' — '+Object.keys(MR).length.toLocaleString('es-AR')+' resoluciones. Carátulas: '+carCount.toLocaleString('es-AR')+' de '+fm(total)+'.'  :'Sin historial de resoluciones.')+'</p></div>';
+
+  // Gráfico barras horizontal
+  h+='<div class="card"><div class="ct">Carga por dependencia</div><div class="cwl"><canvas id="sc3"></canvas></div></div>';
+
+  document.getElementById('stock-body').innerHTML=h;
+
+  setTimeout(function(){
+    ['sc1','sc2','sc3','sc_te','sc_ub'].forEach(function(id){if(CH[id])CH[id].destroy();});
+    // Dona proceso
+    CH.sc1=new Chart(document.getElementById('sc1'),{type:'doughnut',data:{labels:['Ordinario','PDA','Especiales','Otros'],datasets:[{data:[tP.Ordinario,tP.PDA,tP.Especiales,tP.Otros],backgroundColor:[C.ord,C.pda,C.esp,C.ot],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'60%'}});
+    // Barras estado por dep
+    CH.sc2=new Chart(document.getElementById('sc2'),{type:'bar',data:{labels:deps,datasets:[
+      {label:'Sin resolución',data:deps.map(function(d){return Object.values(bD[d]||{}).reduce(function(a,p){return a+(p['Sin resolución']||0);},0);}),backgroundColor:C.sinr,borderRadius:3},
+      {label:'Inadmis.',data:deps.map(function(d){return Object.values(bD[d]||{}).reduce(function(a,p){return a+(p['Inadmisibilidad/revisar']||0);},0);}),backgroundColor:C.inadm,borderRadius:3},
+      {label:'Resueltas',data:deps.map(function(d){return Object.values(bD[d]||{}).reduce(function(a,p){return a+(p['Resuelto']||0);},0);}),backgroundColor:C.res,borderRadius:3}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,beginAtZero:true}}}});
+    // Dona tipo expediente
+    var teLabels=['Electrónico','Papel','Mixto'].filter(function(k){return tTE[k]>0;});
+    var teCols={'Electrónico':'#2563EB','Papel':'#92400E','Mixto':'#6B3FA0'};
+    CH.sc_te=new Chart(document.getElementById('sc_te'),{type:'doughnut',data:{labels:teLabels,datasets:[{data:teLabels.map(function(k){return tTE[k];}),backgroundColor:teLabels.map(function(k){return teCols[k];}),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},cutout:'55%'}});
+    // Barras ubicación
+    var ubColors=['#1A56B0','#1A7A3C','#B07A00','#6B3FA0','#0891B2','#78350F'];
+    CH.sc_ub=new Chart(document.getElementById('sc_ub'),{type:'bar',data:{labels:topUbics.map(function(u){return u[0];}),datasets:[{data:topUbics.map(function(u){return u[1];}),backgroundColor:ubColors,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}}},y:{beginAtZero:true}}}});
+    // Barras horizontal por dependencia (proceso)
+    CH.sc3=new Chart(document.getElementById('sc3'),{type:'bar',data:{labels:deps,datasets:[
+      {label:'Ordinario',data:deps.map(function(d){return _rows.filter(function(r){return r.dep===d&&r.proc==='Ordinario';}).length;}),backgroundColor:C.ord,borderRadius:2},
+      {label:'PDA',data:deps.map(function(d){return _rows.filter(function(r){return r.dep===d&&r.proc==='PDA';}).length;}),backgroundColor:C.pda,borderRadius:2},
+      {label:'Especiales',data:deps.map(function(d){return _rows.filter(function(r){return r.dep===d&&r.proc==='Especiales';}).length;}),backgroundColor:C.esp,borderRadius:2},
+      {label:'Otros',data:deps.map(function(d){return _rows.filter(function(r){return r.dep===d&&r.proc==='Otros';}).length;}),backgroundColor:C.ot,borderRadius:2}
+    ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},scales:{x:{stacked:true,beginAtZero:true},y:{stacked:true,ticks:{font:{size:9}}}}}});
+  },120);
+}
+
+// ===== VISTA PENDIENTES =====
+function buildPendView(){
+  const deps=[...new Set(_pend.map(r=>r.dep))].sort();
+  const tP={Ordinario:0,PDA:0,Especiales:0,Otros:0,'—':0};
+  _pend.forEach(r=>tP[r.proc]=(tP[r.proc]||0)+1);
+  const oC={}; _pend.forEach(r=>{oC[r.uop]=(oC[r.uop]||0)+1;});
+  const tO=Object.entries(oC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  let h = '<div class="mg">';
+  h += '<div class="m"><div class="ml">Total pendientes</div><div class="mv">'+fm(_pend.length)+'</div></div>';
+  h += '<div class="m"><div class="ml"><span class="badge bo">Ordinario</span></div><div class="mv" style="font-size:17px;color:'+C.ord+'">'+fm(tP.Ordinario)+'</div><div class="ms">'+pt(tP.Ordinario,_pend.length)+'%</div></div>';
+  h += '<div class="m"><div class="ml"><span class="badge bp">PDA</span></div><div class="mv" style="font-size:17px;color:'+C.pda+'">'+fm(tP.PDA)+'</div><div class="ms">'+pt(tP.PDA,_pend.length)+'%</div></div>';
+  h += '<div class="m"><div class="ml"><span class="badge be">Especiales</span></div><div class="mv" style="font-size:17px;color:'+C.esp+'">'+fm(tP.Especiales)+'</div><div class="ms">'+pt(tP.Especiales,_pend.length)+'%</div></div>';
+  h += '<div class="m"><div class="ml"><span class="badge bt">Otros</span></div><div class="mv" style="font-size:17px;color:'+C.ot+'">'+fm(tP.Otros)+'</div><div class="ms">'+pt(tP.Otros,_pend.length)+'%</div></div>';
+  h += '</div>';
+
+  h += '<div class="two">';
+  h += '<div class="card"><div class="ct">Por tipo de proceso</div>';
+  h += '<div class="cw"><canvas id="pc1"></canvas></div></div>';
+  h += '<div class="card"><div class="ct">Por dependencia</div>';
+  h += '<div class="cw"><canvas id="pc2"></canvas></div></div></div>';
+
+  h += '<div class="card"><div class="ct">Detalle por dependencia y proceso</div><table>';
+  h += '<thead><tr><th>Dependencia</th><th style="color:'+C.ord+'">Ordinario</th><th style="color:'+C.pda+'">PDA</th><th style="color:'+C.esp+'">Especiales</th><th style="color:'+C.ot+'">Otros</th><th>Total</th></tr></thead><tbody>';
+  deps.forEach(function(d){
+    var sub=_pend.filter(function(r){return r.dep===d;});
+    var pT={Ordinario:0,PDA:0,Especiales:0,Otros:0};
+    sub.forEach(function(r){pT[r.proc]=(pT[r.proc]||0)+1;});
+    h+='<tr><td>'+d+'</td>'+['Ordinario','PDA','Especiales','Otros'].map(function(p){return '<td style="text-align:right">'+(pT[p]||'')+'</td>';}).join('')+'<td style="text-align:right"><strong>'+fm(sub.length)+'</strong></td></tr>';
+  });
+  var tTot=_pend.length;
+  h+='<tr class="trt"><td>Total</td>'+['Ordinario','PDA','Especiales','Otros'].map(function(p){return '<td style="text-align:right">'+fm(tP[p])+'</td>';}).join('')+'<td style="text-align:right">'+fm(tTot)+'</td></tr>';
+  h+='</tbody></table></div>';
+  h+='<div class="card"><div class="ct">Top 10 últimas operaciones</div><table><thead><tr><th>Operación</th><th>N</th><th>%</th></tr></thead><tbody>';
+  tO.forEach(function(a){h+='<tr><td>'+a[0]+'</td><td>'+fm(a[1])+'</td><td><div class="bw"><div class="bb"><div class="bf" style="width:'+pt(a[1],tO[0][1])+'%;background:var(--ac)"></div></div>'+pt(a[1],tTot)+'%</div></td></tr>';});
+  h+='</tbody></table></div>';
+  document.getElementById('pend-c').innerHTML=h;
+
+  setTimeout(function(){
+    ['pc1','pc2'].forEach(function(id){if(CH[id])CH[id].destroy();});
+    CH.pc1=new Chart(document.getElementById('pc1'),{type:'doughnut',data:{labels:['Ordinario','PDA','Especiales','Otros'],datasets:[{data:[tP.Ordinario,tP.PDA,tP.Especiales,tP.Otros],backgroundColor:[C.ord,C.pda,C.esp,C.ot],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},cutout:'58%'}});
+    CH.pc2=new Chart(document.getElementById('pc2'),{type:'bar',data:{labels:deps,datasets:[
+      {label:'Ordinario',data:deps.map(function(d){return _pend.filter(function(r){return r.dep===d&&r.proc==='Ordinario';}).length;}),backgroundColor:C.ord,borderRadius:3},
+      {label:'PDA',data:deps.map(function(d){return _pend.filter(function(r){return r.dep===d&&r.proc==='PDA';}).length;}),backgroundColor:C.pda,borderRadius:3},
+      {label:'Especiales',data:deps.map(function(d){return _pend.filter(function(r){return r.dep===d&&r.proc==='Especiales';}).length;}),backgroundColor:C.esp,borderRadius:3},
+      {label:'Otros',data:deps.map(function(d){return _pend.filter(function(r){return r.dep===d&&r.proc==='Otros';}).length;}),backgroundColor:C.ot,borderRadius:3}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,beginAtZero:true}}}});
+  },120);
+}
+
+// ===== CRUCE =====
+function buildCruce(){
+  if(!_rows.length&&!D.s){document.getElementById('cruce-c').innerHTML='<div class="empty">Procesá los archivos primero.</div>';return;}
+  const hR=Object.keys(MR).length>0;
+  const total=_rows.length;
+  const res=_rows.filter(r=>r.est==='Resuelto').length;
+  const inadm=_rows.filter(r=>r.est==='Inadmisibilidad/revisar').length;
+  const sinR=_rows.filter(r=>r.est==='Sin resolución').length;
+  const conCar=_rows.filter(r=>r.car).length;
+  const sinCar=total-conCar;
+  const deps=[...new Set(_rows.map(r=>r.dep))].sort();
+  const fl=FMX?FMX.toLocaleDateString('es-AR'):'—';
+
+  let h='<div class="mg"><div class="m"><div class="ml">Total activos</div><div class="mv">'+fm(total)+'</div></div>';
+  h+='<div class="m"><div class="ml">Sin resolución</div><div class="mv" style="color:'+C.sinr+'">'+fm(sinR)+'</div><div class="ms">'+pt(sinR,total)+'%</div></div>';
+  h+='<div class="m"><div class="ml">Inadmisibilidad</div><div class="mv" style="color:'+C.inadm+'">'+fm(inadm)+'</div><div class="ms">'+pt(inadm,total)+'%</div></div>';
+  h+='<div class="m"><div class="ml">Resueltas</div><div class="mv" style="color:'+C.res+'">'+fm(res)+'</div><div class="ms">'+pt(res,total)+'%</div></div>';
+  h+='<div class="m"><div class="ml">Con carátula</div><div class="mv" style="font-size:17px">'+fm(conCar)+'</div><div class="ms">en pendientes</div></div>';
+  h+='<div class="m"><div class="ml">Sin carátula</div><div class="mv" style="font-size:17px;color:var(--wa)">'+fm(sinCar)+'</div><div class="ms">solo en stock</div></div></div>';
+  if(inadm>0)h+='<div class="al al-i">⚠ <strong>'+fm(inadm)+' causas</strong> con decreto de inadmisibilidad — exportalas con el filtro para enviar a cada dependencia.</div>';
+  h+='<div class="al"><strong>'+fm(sinCar)+' causas</strong> en stock sin dato en pendientes — candidatas a limpiar (ya resueltas sin movimiento). Exportalas con el filtro "Resuelto".</div>';
+  h+='<div class="card"><div class="ct">Estado procesal por dependencia</div><table>';
+  h+='<thead><tr><th>Dependencia</th><th>Total</th><th style="color:'+C.sinr+'">Sin resolución</th><th style="color:'+C.inadm+'">Inadmis.</th><th style="color:'+C.res+'">Resueltas</th><th>Con carátula</th></tr></thead><tbody>';
+  deps.forEach(function(d){
+    var sub=_rows.filter(function(r){return r.dep===d;});
+    var s=sub.filter(function(r){return r.est==='Sin resolución';}).length;
+    var i=sub.filter(function(r){return r.est==='Inadmisibilidad/revisar';}).length;
+    var r2=sub.filter(function(r){return r.est==='Resuelto';}).length;
+    var c=sub.filter(function(r){return r.car;}).length;
+    h+='<tr><td>'+d+'</td><td>'+fm(sub.length)+'</td><td><span class="chip cs">'+fm(s)+'</span></td><td><span class="chip ci">'+fm(i)+'</span></td><td><span class="chip cr">'+fm(r2)+'</span></td><td>'+fm(c)+'</td></tr>';
+  });
+  h+='<tr class="trt"><td>Total</td><td>'+fm(total)+'</td><td>'+fm(sinR)+'</td><td>'+fm(inadm)+'</td><td>'+fm(res)+'</td><td>'+fm(conCar)+'</td></tr></tbody></table>';
+  h+='<p class="nota">'+(hR?'Historial al '+fl+'.':'Sin historial — todos figuran como "Sin resolución".')+'</p></div>';
+  document.getElementById('cruce-c').innerHTML=h;
+}
+
+// ===== EXPORTAR 1 =====
+function pobExp1(){
+  const deps=[...new Set(_rows.map(r=>r.dep))].sort();
+  const sel=document.getElementById('e1-dep'); if(!sel)return;
+  sel.innerHTML='<option value="">Todas</option>';
+  deps.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
+  E1filt();
+}
+function getE1rows(){
+  const df=document.getElementById('e1-dep')?.value||'';
+  const ef=document.getElementById('e1-est')?.value||'';
+  const pf=document.getElementById('e1-proc')?.value||'';
+  return _rows.filter(r=>{
+    if(df&&r.dep!==df)return false;
+    if(ef&&r.est!==ef)return false;
+    if(pf&&r.proc!==pf)return false;
+    return true;
+  }).map(r=>({
+    'Dependencia':r.dep,'Tipo de proceso':r.proc,'Tipo de juicio':r.tj,
+    'Nro. Expte.':r.idE,'Carátula':r.car,'Fecha de inicio':fmD(r.fi),
+    'Tipo de expediente':r.tipoExpe,'Estado procesal':r.est,
+    'Tipo de resolución':r.tipoRes,'Fecha resolución':r.fechaRes,
+    'Última operación':r.uop,'Fecha última op.':fmD(r.fop),
+    'Empleado instructor':r.ins,'Ubicación':r.ubic
+  }));
+}
+function E1filt(){ const r=getE1rows(); const p=document.getElementById('e1-prev'); if(p)p.textContent=r.length?fm(r.length)+' causas a exportar':'Sin datos'; }
+function PRV1(){
+  const rows=getE1rows().slice(0,30); if(!rows.length){document.getElementById('e1-wrap').innerHTML='<div class="empty">Sin datos.</div>';return;}
+  const cols=Object.keys(rows[0]);
+  let h='<div class="card"><div class="ct">Previsualización — '+rows.length+' filas</div><div style="overflow-x:auto;max-height:240px"><table><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{h+='<tr>'+cols.map(c=>'<td>'+(r[c]||'')+'</td>').join('')+'</tr>';});
+  h+='</tbody></table></div></div>';
+  document.getElementById('e1-wrap').innerHTML=h; E1filt();
+}
+function EXP1(){
+  const df=document.getElementById('e1-dep')?.value||'';
+  const ef=document.getElementById('e1-est')?.value||'';
+  const pf=document.getElementById('e1-proc')?.value||'';
+  const fecha=document.getElementById('e1-fecha')?.value||new Date().toLocaleDateString('es-AR');
+  const rows=getE1rows(); if(!rows.length){alert('Sin datos.');return;}
+  const wb=XLSX.utils.book_new();
+  const scope=df||'Todas las dependencias';
+  const filters=[ef,pf].filter(Boolean).join(' / ');
+  const titulo='Listado activos al '+fecha+' — '+scope+(filters?' — '+filters:'');
+  const ws=XLSX.utils.aoa_to_sheet([[titulo],Object.keys(rows[0]),...rows.map(r=>Object.values(r))]);
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:Object.keys(rows[0]).length-1}}];
+  if(ws['A1'])ws['A1'].s={font:{bold:true,sz:12,color:{rgb:'CC0000'}}};
+  ws['!autofilter']={ref:'A2:'+XLSX.utils.encode_col(Object.keys(rows[0]).length-1)+(rows.length+1)};
+  ws['!cols']=[{wch:22},{wch:13},{wch:38},{wch:13},{wch:45},{wch:13},{wch:14},{wch:20},{wch:38},{wch:13},{wch:42},{wch:13},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Listado');
+  const rd=[['Resumen — '+scope+(filters?' — '+filters:'')+' — al '+fecha],[''],['Dependencia','Sin resolución','Inadmis./revisar','Resueltas','Total']];
+  const bD={};rows.forEach(r=>{const d=r['Dependencia'];if(!bD[d])bD[d]={s:0,i:0,r:0,t:0};bD[d].t++;if(r['Estado procesal']==='Resuelto')bD[d].r++;else if(r['Estado procesal']==='Inadmisibilidad/revisar')bD[d].i++;else bD[d].s++;});
+  Object.entries(bD).sort((a,b)=>a[0]>b[0]?1:-1).forEach(([d,v])=>rd.push([d,v.s,v.i,v.r,v.t]));
+  const tt=rows.reduce((a,r)=>{a.t++;if(r['Estado procesal']==='Resuelto')a.r++;else if(r['Estado procesal']==='Inadmisibilidad/revisar')a.i++;else a.s++;return a;},{t:0,s:0,i:0,r:0});
+  rd.push(['Total',tt.s,tt.i,tt.r,tt.t]);
+  const ws2=XLSX.utils.aoa_to_sheet(rd); ws2['!cols']=[{wch:25},{wch:16},{wch:18},{wch:12},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumen');
+  XLSX.writeFile(wb,'activos_'+scope.replace(/[^a-zA-Z0-9]/g,'_')+'_'+fecha.replace(/\//g,'-')+'.xlsx');
+}
+
+// ===== EXPORTAR 2 =====
+function pobExp2(){
+  const deps=[...new Set(_pend.map(r=>r.dep))].sort();
+  const sel=document.getElementById('e2-dep'); if(!sel)return;
+  sel.innerHTML='<option value="">Todas</option>';
+  deps.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);});
+  E2filt();
+}
+function getE2rows(){
+  const df=document.getElementById('e2-dep')?.value||'';
+  const pf=document.getElementById('e2-proc')?.value||'';
+  return _pend.filter(r=>{
+    if(df&&r.dep!==df)return false;
+    if(pf&&r.proc!==pf)return false;
+    return true;
+  }).map(r=>({'Dependencia':r.dep,'Tipo de proceso':r.proc,'Tipo de juicio':r.tj,'Nro. Expte.':r.nro,'Carátula':r.car,'Fecha de inicio':fmD(r.fi),'Última operación':r.uop,'Fecha última op.':fmD(r.fop),'Empleado instructor':r.ins,'Ubicación':r.ubic}));
+}
+function E2filt(){ const r=getE2rows(); const p=document.getElementById('e2-prev'); if(p)p.textContent=r.length?fm(r.length)+' causas a exportar':'Sin datos'; }
+function PRV2(){
+  const rows=getE2rows().slice(0,30); if(!rows.length){document.getElementById('e2-wrap').innerHTML='<div class="empty">Sin datos.</div>';return;}
+  const cols=Object.keys(rows[0]);
+  let h='<div class="card"><div class="ct">Previsualización</div><div style="overflow-x:auto;max-height:240px"><table><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{h+='<tr>'+cols.map(c=>'<td>'+(r[c]||'')+'</td>').join('')+'</tr>';});
+  h+='</tbody></table></div></div>';
+  document.getElementById('e2-wrap').innerHTML=h; E2filt();
+}
+function EXP2(){
+  const df=document.getElementById('e2-dep')?.value||'';
+  const pf=document.getElementById('e2-proc')?.value||'';
+  const fecha=document.getElementById('e2-fecha')?.value||new Date().toLocaleDateString('es-AR');
+  const rows=getE2rows(); if(!rows.length){alert('Sin datos.');return;}
+  const wb=XLSX.utils.book_new();
+  const scope=df||'Todas las dependencias';
+  const titulo='Pendientes al '+fecha+' — '+scope+(pf?' — '+pf:'');
+  const ws=XLSX.utils.aoa_to_sheet([[titulo],Object.keys(rows[0]),...rows.map(r=>Object.values(r))]);
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:Object.keys(rows[0]).length-1}}];
+  if(ws['A1'])ws['A1'].s={font:{bold:true,sz:12,color:{rgb:'CC0000'}}};
+  ws['!autofilter']={ref:'A2:'+XLSX.utils.encode_col(Object.keys(rows[0]).length-1)+(rows.length+1)};
+  ws['!cols']=[{wch:22},{wch:13},{wch:38},{wch:13},{wch:45},{wch:13},{wch:42},{wch:13},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Pendientes');
+  const NP_L=['Ordinario','PDA','Especiales','Otros'];
+  const rd=[['Resumen — '+scope+(pf?' — '+pf:'')+' — al '+fecha],[''],['Dependencia',...NP_L,'Total']];
+  const bD={};rows.forEach(r=>{const d=r['Dependencia'];if(!bD[d])bD[d]={Ordinario:0,PDA:0,Especiales:0,Otros:0,t:0};bD[d][r['Tipo de proceso']]=(bD[d][r['Tipo de proceso']]||0)+1;bD[d].t++;});
+  Object.entries(bD).sort((a,b)=>a[0]>b[0]?1:-1).forEach(([d,v])=>rd.push([d,...NP_L.map(p=>v[p]||0),v.t]));
+  const tt=rows.reduce((a,r)=>{NP_L.forEach(p=>{a[p]=(a[p]||0)+(r['Tipo de proceso']===p?1:0)});a.t++;return a;},{t:0});
+  rd.push(['Total',...NP_L.map(p=>tt[p]||0),tt.t]);
+  const ws2=XLSX.utils.aoa_to_sheet(rd); ws2['!cols']=[{wch:25},{wch:12},{wch:10},{wch:12},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumen');
+  XLSX.writeFile(wb,'pendientes_'+scope.replace(/[^a-zA-Z0-9]/g,'_')+'_'+fecha.replace(/\//g,'-')+'.xlsx');
+}
+
+// ===== TEXTO =====
+function GD(){
+  var tipo=document.getElementById('it')?document.getElementById('it').value:'a';
+  var per=document.getElementById('ip')?document.getElementById('ip').value:'';
+  var dest=document.getElementById('id2')?document.getElementById('id2').value:'';
+  var nms=['Resumen ejecutivo','Analisis stock','Analisis pendientes','Comparativo','TGA 5 vacante','Informe semestral'];
+  var d='SOLICITUD: '+nms[['a','b','c','d','e','f'].indexOf(tipo)];
+  d+='\nPERIODO: '+per+'\nDESTINATARIO: '+dest+'\n\nDATOS:\n';
+  if(_rows.length){
+    var total=_rows.length;
+    var tP={Ordinario:0,PDA:0,Especiales:0,Otros:0};
+    _rows.forEach(function(r){tP[r.proc]=(tP[r.proc]||0)+1;});
+    var res=_rows.filter(function(r){return r.est==='Resuelto';}).length;
+    var inadm=_rows.filter(function(r){return r.est==='Inadmisibilidad/revisar';}).length;
+    var sinR=_rows.filter(function(r){return r.est==='Sin resolucion';}).length;
+    d+='Stock activo: '+fm(total)+' causas. ';
+    d+='Ordinario: '+fm(tP.Ordinario)+' ('+pt(tP.Ordinario,total)+'%), ';
+    d+='PDA: '+fm(tP.PDA)+' ('+pt(tP.PDA,total)+'%), ';
+    d+='Especiales: '+fm(tP.Especiales)+' ('+pt(tP.Especiales,total)+'%), ';
+    d+='Otros: '+fm(tP.Otros)+' ('+pt(tP.Otros,total)+'%).\n';
+    if(Object.keys(MR).length){
+      d+='Estado procesal: Resueltas '+fm(res)+' ('+pt(res,total)+'%), ';
+      d+='Inadmisibilidad '+fm(inadm)+' ('+pt(inadm,total)+'%), ';
+      d+='Sin resolucion '+fm(sinR)+' ('+pt(sinR,total)+'%).\n';
+    }
+    var deps=[...new Set(_rows.map(function(r){return r.dep;}))].sort();
+    deps.forEach(function(dep){
+      var n=_rows.filter(function(r){return r.dep===dep;}).length;
+      d+=dep+': '+n+' causas.\n';
+    });
+  }
+  if(_pend.length){
+    d+='\nPendientes: '+fm(_pend.length)+' causas.\n';
+    d+='TGA 5: 3 jueces activos (vacante pendiente). Redistribucion prevista al nombrar el cuarto juez.\n';
+  }
+  document.getElementById('txt-out').value=d;
+}
+
+// ===== NAV =====
+function GT(id,el){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+document.getElementById('hdr-f').textContent=new Date().toLocaleDateString('es-AR');
+</script>
+</body>
+</html>
