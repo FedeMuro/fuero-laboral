@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cámara del Trabajo Córdoba — Foto Mensual</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#F5F4F0;--sur:#FFF;--bdr:#E2E0D8;--bdr2:#CBC9BF;
+  --tx:#1A1916;--tx2:#6B6960;--tx3:#9B9A94;
+  --ac:#1C3A6B;--ac2:#2550A0;--acl:#EBF0FA;
+  --res:#1A7A3C;--resl:#E6F4EC;
+  --sinr:#B07A00;--sinrl:#FDF5DC;
+  --avo:#6B3FA0;--avol:#F0EBF9;
+  --wa:#8B4A0F;--wal:#FEF3E7;
+  --mn:'IBM Plex Mono',monospace;--sn:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sn);background:var(--bg);color:var(--tx);font-size:13px;min-height:100vh}
+.hdr{background:var(--ac);color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.hdr-t{font-size:14px;font-weight:600}
+.hdr-s{font-size:10px;opacity:.6;font-family:var(--mn)}
+.hdr-b{font-family:var(--mn);font-size:10px;background:rgba(255,255,255,.15);padding:3px 9px;border-radius:4px}
+.lay{display:flex;min-height:calc(100vh - 48px)}
+.sid{width:185px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bdr);padding:.75rem 0;overflow-y:auto}
+.main{flex:1;padding:1.1rem;overflow-x:hidden}
+.ns{font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1rem .2rem}
+.ni{display:flex;align-items:center;gap:7px;padding:6px 1rem;font-size:12px;color:var(--tx2);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.ni:hover{background:var(--bg);color:var(--tx)}
+.ni.active{color:var(--ac);border-left-color:var(--ac);background:var(--acl);font-weight:500}
+.ni-ic{font-size:13px;width:16px;text-align:center}
+.sec{display:none}.sec.active{display:block}
+.pt{font-size:15px;font-weight:600;margin-bottom:.2rem}
+.ps{font-size:10px;color:var(--tx3);font-family:var(--mn);margin-bottom:1rem}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:.9rem 1rem;margin-bottom:.8rem}
+.ct{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.7rem}
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:7px;margin-bottom:.9rem}
+.m{background:var(--sur);border:1px solid var(--bdr);border-radius:7px;padding:.65rem;text-align:center}
+.ml{font-size:10px;color:var(--tx3);margin-bottom:3px;line-height:1.3}
+.mv{font-size:20px;font-weight:600;font-family:var(--mn)}
+.ms{font-size:10px;color:var(--tx3);margin-top:1px;font-family:var(--mn)}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:right;padding:4px 7px;font-weight:600;font-size:10px;color:var(--tx3);border-bottom:1px solid var(--bdr);background:var(--bg);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:4px 7px;border-bottom:1px solid var(--bdr);vertical-align:middle;text-align:right}
+td:first-child{text-align:left}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.tr-g td{font-weight:700;background:var(--acl);color:var(--ac)}
+.tr-sub td{font-weight:600;background:var(--bg)}
+.tr-tot td{font-weight:700;background:var(--ac);color:#fff}
+.dz{border:1.5px dashed var(--bdr2);border-radius:8px;padding:.75rem;text-align:center;cursor:pointer;margin-bottom:.55rem;transition:all .2s;position:relative}
+.dz:hover,.dz.ov{border-color:var(--ac);background:var(--acl)}
+.dz input{display:none}
+.dzi{font-size:16px;margin-bottom:2px}
+.dzl{font-size:12px;font-weight:500;margin-bottom:1px}
+.dzs{font-size:10px;color:var(--tx3)}
+.dzt{font-size:9px;display:inline-block;padding:1px 6px;border-radius:3px;margin-top:2px;font-family:var(--mn)}
+.dzt-c{background:var(--acl);color:var(--ac)}
+.dzt-p{background:var(--sinrl);color:var(--sinr)}
+.dzt-o{background:var(--avol);color:var(--avo)}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;margin-top:3px;font-family:var(--mn)}
+.stw{background:var(--bg);color:var(--tx3)}.stl{background:var(--acl);color:var(--ac)}
+.sto{background:var(--resl);color:var(--res)}.ste{background:var(--wal);color:var(--wa)}
+.pb{width:100%;height:3px;background:var(--bdr);border-radius:2px;margin-top:4px;overflow:hidden;display:none}
+.pf{height:100%;background:var(--ac);border-radius:2px;transition:width .3s}
+.al{border-left:3px solid var(--ac);background:var(--acl);padding:.55rem .85rem;border-radius:0 6px 6px 0;font-size:11px;margin-bottom:.8rem;line-height:1.6}
+.al-w{border-left-color:var(--wa);background:var(--wal)}
+.al-ok{border-left-color:var(--res);background:var(--resl)}
+.chip{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;font-family:var(--mn)}
+.c-res{background:var(--resl);color:var(--res)}
+.c-sinr{background:var(--sinrl);color:var(--sinr)}
+.c-avo{background:var(--avol);color:var(--avo)}
+.c-no{background:var(--bg);color:var(--tx3)}
+.c-na{background:#F0EEE8;color:var(--tx3)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+@media(max-width:650px){.two{grid-template-columns:1fr}}
+.cw{position:relative;width:100%;height:210px}
+.cwl{position:relative;width:100%;height:320px}
+/* Filtros tipo PBI */
+.fbar{display:flex;flex-wrap:wrap;gap:7px;padding:.7rem 1rem;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;align-items:center;margin-bottom:1rem}
+.fl{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-right:3px;white-space:nowrap}
+.fsep{width:1px;height:22px;background:var(--bdr);margin:0 3px}
+.fchip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:all .15s;user-select:none;white-space:nowrap}
+.fchip:hover{opacity:.85}
+.fchip.active{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor}
+.fc-s{background:var(--acl);color:var(--ac)}
+.fc-a{background:var(--avol);color:var(--avo)}
+.fc-n{background:var(--sinrl);color:var(--sinr)}
+.fclr{font-size:10px;color:var(--tx3);cursor:pointer;padding:3px 7px;border-radius:4px;border:1px solid var(--bdr);background:transparent;margin-left:auto}
+.fclr:hover{background:var(--bg)}
+.fbadge{font-size:9px;background:var(--ac);color:#fff;padding:1px 5px;border-radius:8px;margin-left:4px;font-family:var(--mn)}
+select,input[type=text]{font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--bdr2);background:var(--sur);color:var(--tx);cursor:pointer;font-family:var(--sn)}
+.btn{background:transparent;border:1px solid var(--bdr2);border-radius:6px;padding:5px 11px;font-size:11px;cursor:pointer;color:var(--tx2);display:inline-flex;align-items:center;gap:4px;font-family:var(--sn);transition:all .15s}
+.btn:hover{background:var(--bg)}
+.btn-p{background:var(--ac);color:#fff;border-color:var(--ac)}.btn-p:hover{background:var(--ac2)}
+.btn-e{background:#1A3A6B;color:#fff;border-color:#1A3A6B}
+.rg{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.7rem}
+.nota{font-size:10px;color:var(--tx3);margin-top:5px;font-style:italic;font-family:var(--mn)}
+.empty{text-align:center;padding:2.5rem;color:var(--tx3);font-size:12px}
+.tag{font-size:10px;background:var(--bg);color:var(--tx3);padding:1px 5px;border-radius:3px;display:inline-block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;font-family:var(--mn)}
+.multi-drop{display:none}
+.multi-drop.show{display:block}
+/* PRINT */
+@media print {
+  .sid,.fbar,.btn,.rg,.mg,.two,.al,.nota,.hdr-b { display:none!important; }
+  .hdr { padding:.4rem .8rem; }
+  .lay { display:block; }
+  .main { padding:.3rem; }
+  .sec { display:block!important; }
+  #foto { display:block!important; }
+  #stock,#detalle,#pendientes,#exp,#revisar,#arch { display:none!important; }
+  .td-wrap { overflow:visible; }
+  .td-wrap table { font-size:10px; }
+  .td-wrap table th, .td-wrap table td { padding:3px 5px; }
+  .row-sub.anio-hidden { display:none!important; }
+  .print-header { display:block!important; }
+}
+.print-header { display:none; font-size:13px; font-weight:600; margin-bottom:.5rem; color:var(--ac); }
+/* Tabla dinámica principal */
+.td-wrap{overflow-x:auto;margin-top:.5rem}
+.td-wrap table th{background:var(--ac);color:#fff;text-align:center}
+.td-wrap table th:first-child{text-align:left;background:var(--ac2)}
+.td-wrap table td{text-align:center}
+.td-wrap table td:first-child{text-align:left;font-weight:500}
+.td-wrap .row-avo td{background:var(--avol);color:var(--avo)}
+.td-wrap .row-noavo td{background:var(--sinrl);color:var(--sinr)}
+.td-wrap .row-sub td{font-size:10px;color:var(--tx2);padding-left:18px}
+.td-wrap .row-tot td{font-weight:700;background:var(--ac);color:#fff}
+.td-wrap .row-tot-avo td{font-weight:700;background:var(--avo);color:#fff}
+.td-wrap .row-tot-no td{font-weight:700;background:var(--sinr);color:#fff}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="hdr-t">Cámara del Trabajo Córdoba — Foto Mensual</div>
+    <div class="hdr-s">Sistema de análisis y reporting judicial</div>
+  </div>
+  <div class="hdr-b" id="hdr-f">—</div>
+</div>
+<div class="lay">
+<nav class="sid">
+  <div class="ns">Datos</div>
+  <div class="ni active" onclick="GT('arch',this)"><span class="ni-ic">📂</span>Archivos</div>
+  <div class="ns">Análisis</div>
+  <div class="ni" onclick="GT('foto',this)"><span class="ni-ic">📸</span>Foto mensual</div>
+  <div class="ni" onclick="GT('detalle',this)"><span class="ni-ic">🔍</span>Detalle por sala</div>
+  <div class="ni" onclick="GT('pendientes',this)"><span class="ni-ic">📋</span>Pendientes sala</div>
+  <div class="ns">Exportar</div>
+  <div class="ni" onclick="GT('exp',this)"><span class="ni-ic">⬇</span>Exportar foto</div>
+  <div class="ni" onclick="GT('revisar',this)"><span class="ni-ic">⚠</span>Para revisar</div>
+</nav>
+<main class="main">
+
+<!-- ARCHIVOS -->
+<div id="arch" class="sec active">
+  <div class="pt">Carga de archivos — Foto mensual</div>
+  <div class="ps">Cámara del Trabajo · 11 salas · 22 secretarías</div>
+
+  <div class="al" style="margin-bottom:.8rem">
+    <strong>Flujo:</strong> Cargá los archivos → Procesá → Revisá los casos marcados para análisis manual → Exportá la foto.
+    <br>La foto anterior actúa como memoria: datos ya cargados el mes pasado no se vuelven a buscar.
+  </div>
+
+  <div class="card">
+    <div class="ct">Archivos obligatorios</div>
+    <div class="dz" onclick="document.getElementById('f-stock').click()" ondrop="DR(event,'stock')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-stock" accept=".xlsx" onchange="LF(this,'stock')">
+      <div class="dzi">📊</div><div class="dzl">Stock activo (Power BI)</div>
+      <div class="dzs">Filtrado por dependencias de Cámara (11 salas × 22 sec.)</div>
+      <div class="dzt dzt-c">subir cada mes</div>
+      <div id="st-stock" class="st stw">⏳ Pendiente</div>
+    </div>
+    <div class="dz" onclick="document.getElementById('f-foto').click()" ondrop="DR(event,'foto')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-foto" accept=".xlsx,.csv" onchange="LF(this,'foto')">
+      <div class="dzi">🗓</div><div class="dzl">Foto anterior (mes anterior)</div>
+      <div class="dzs">Columnas A-P del sheet del mes pasado · actúa como memoria acumulada</div>
+      <div class="dzt dzt-c">subir cada mes</div>
+      <div id="st-foto" class="st stw">⏳ Pendiente</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">Resoluciones e ingresos</div>
+    <div class="dz" onclick="document.getElementById('f-res').click()" ondrop="DR(event,'res')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-res" accept=".xlsx,.csv" onchange="LF(this,'res')">
+      <div class="dzi">⚖️</div><div class="dzl">Resoluciones de extranet</div>
+      <div class="dzs">Clave: idExpediente-SALA · ordenado por clave asc, fecha desc</div>
+      <div class="dzt dzt-p">actualizar periódicamente</div>
+      <div id="st-res" class="st stw">⏳ Pendiente</div>
+      <div class="pb" id="pb-res" style="display:none"><div class="pf" id="pf-res" style="width:0%"></div></div>
+    </div>
+    <div class="dz" onclick="document.getElementById('f-ing').click()" ondrop="DR(event,'ing')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-ing" accept=".xlsx" onchange="LF(this,'ing')">
+      <div class="dzi">📥</div><div class="dzl">Ingresos por elevación a juicio</div>
+      <div class="dzs">idExpediente + fecha de elevación · se toma la más antigua por expediente</div>
+      <div class="dzt dzt-p">actualizar periódicamente</div>
+      <div id="st-ing" class="st stw">⏳ Pendiente</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">Avocamientos (5 operaciones)</div>
+    <div class="dz" onclick="document.getElementById('f-avo').click()" ondrop="DR(event,'avo')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-avo" accept=".xlsx" onchange="LF(this,'avo')">
+      <div class="dzi">🔔</div><div class="dzl">Avocamientos</div>
+      <div class="dzs">Operación "Avocamiento" del reporte BI · clave: idExpediente-SALA</div>
+      <div class="dzt dzt-o">actualizar periódicamente</div>
+      <div id="st-avo" class="st stw">⏳ Pendiente</div>
+    </div>
+    <div class="dz" onclick="document.getElementById('f-fij').click()" ondrop="DR(event,'fij')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-fij" accept=".xlsx,.csv" onchange="LF(this,'fij')">
+      <div class="dzi">📅</div><div class="dzl">Fijaciones AVC extranet</div>
+      <div class="dzs">Decretos fijación AVC + continuación AVC · clave: idExpediente-SALA</div>
+      <div class="dzt dzt-o">actualizar periódicamente</div>
+      <div id="st-fij" class="st stw">⏳ Pendiente</div>
+      <div class="pb" id="pb-fij" style="display:none"><div class="pf" id="pf-fij" style="width:0%"></div></div>
+    </div>
+    <div class="dz" onclick="document.getElementById('f-act').click()" ondrop="DR(event,'act')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-act" accept=".xlsx,.csv" onchange="LF(this,'act')">
+      <div class="dzi">📝</div><div class="dzl">Actas de AVC extranet</div>
+      <div class="dzs">Actas AVC + AVC continuación · clave: idExpediente-SALA</div>
+      <div class="dzt dzt-o">actualizar periódicamente</div>
+      <div id="st-act" class="st stw">⏳ Pendiente</div>
+      <div class="pb" id="pb-act" style="display:none"><div class="pf" id="pf-act" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">Pendientes sala (opcional)</div>
+    <div class="al" style="font-size:11px;margin-bottom:.6rem">
+      Seleccioná los 22 archivos de una sola vez. Si el nombre sigue la convención
+      <code style="font-family:var(--mn);background:var(--bg);padding:1px 4px;border-radius:3px">pendientes_sala1_sec1.xlsx</code>
+      la app asigna la sala automáticamente. Si no, te pregunta uno por uno.
+    </div>
+    <div class="dz" onclick="document.getElementById('f-pend-multi').click()"
+         ondrop="dropPend(event)" ondragover="OV(event)" ondragleave="OL(event)"
+         style="border-style:dashed;border-color:var(--avo)">
+      <input type="file" id="f-pend-multi" accept=".xlsx" multiple onchange="LFPendMulti(this)">
+      <div class="dzi">📋</div>
+      <div class="dzl">Pendientes de todas las secretarías</div>
+      <div class="dzs">Seleccioná o arrastrá los 22 archivos juntos de una sola vez</div>
+      <div class="dzt dzt-o">hasta 22 archivos a la vez</div>
+      <div id="st-pend" class="st stw">⏳ Sin archivos</div>
+    </div>
+    <div id="pend-list" style="font-size:11px;color:var(--tx3);font-family:var(--mn);margin-top:.4rem">Sin archivos cargados aún</div>
+    <div id="pend-cola" style="display:none;margin-top:.6rem">
+      <div class="al al-w" style="font-size:11px" id="pend-cola-msg"></div>
+    </div>
+  </div>
+
+  <!-- Modal sala/secretaría para pendientes -->
+  <div id="modal-sala" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center">
+    <div style="background:var(--sur);border-radius:10px;padding:1.5rem;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+      <div style="font-size:14px;font-weight:600;margin-bottom:.75rem">¿A qué sala y secretaría pertenece este archivo?</div>
+      <div style="font-size:11px;color:var(--tx3);font-family:var(--mn);margin-bottom:1rem" id="modal-filename">—</div>
+      <div class="rg" style="margin-bottom:.75rem">
+        <select id="modal-sala-sel" style="flex:1">
+          <option value="">Sala...</option>
+          <option>SALA 1</option><option>SALA 2</option><option>SALA 3</option>
+          <option>SALA 4</option><option>SALA 5</option><option>SALA 6</option>
+          <option>SALA 7</option><option>SALA 8</option><option>SALA 9</option>
+          <option>SALA 10</option><option>SALA 11</option>
+        </select>
+        <select id="modal-sec-sel" style="flex:1">
+          <option value="">Secretaría...</option>
+        </select>
+      </div>
+      <div class="rg">
+        <button class="btn btn-p" onclick="confirmarSala()" style="flex:1">✓ Confirmar</button>
+        <button class="btn" onclick="cancelarModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rg" style="margin-top:.6rem">
+    <button class="btn btn-p" onclick="PROC()">▶ Procesar foto mensual</button>
+    <div id="mp" style="font-size:11px;color:var(--tx3);font-family:var(--mn)"></div>
+  </div>
+</div>
+
+<!-- FOTO MENSUAL -->
+<div id="foto" class="sec">
+  <div class="pt">Foto mensual <span id="foto-badge" class="fbadge" style="display:none"></span></div>
+  <div class="ps">Tabla dinámica: Avocamiento × Año de elevación × Sala</div>
+  <div id="foto-c"><div class="empty">Procesá los archivos primero.</div></div>
+</div>
+
+<!-- DETALLE POR SALA -->
+<div id="detalle" class="sec">
+  <div class="pt">Detalle por sala</div>
+  <div class="ps">Listado filtrable de causas activas en Cámara</div>
+  <div id="detalle-c"><div class="empty">Procesá los archivos primero.</div></div>
+</div>
+
+<!-- PENDIENTES SALA -->
+<div id="pendientes" class="sec">
+  <div class="pt">Pendientes por sala</div>
+  <div class="ps">Causas pendientes de resolución en cada secretaría</div>
+  <div id="pend-c"><div class="empty">Cargá los archivos de pendientes y procesá.</div></div>
+</div>
+
+<!-- EXPORTAR -->
+<div id="exp" class="sec">
+  <div class="pt">Exportar foto</div>
+  <div class="ps">Listado completo listo para pegar en el Sheet mensual</div>
+  <div class="al al-ok" style="margin-bottom:.8rem;font-size:11px">
+    <strong>Flujo:</strong> Exportá la foto del mes → guardala en tu computadora → el mes que viene arrastrala en "Foto anterior". Así la app recuerda los datos completados manualmente.
+  </div>
+  <div class="rg" style="margin-bottom:.8rem">
+    <button class="btn btn-e" onclick="EXP_FOTO_ANT()" style="background:var(--avo)">
+      💾 Guardar como foto anterior (para el próximo mes)
+    </button>
+  </div>
+  <div class="card"><div class="ct">Configurar exportación</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div class="rg">
+        <label style="font-size:11px;color:var(--tx3)">Sala:</label>
+        <select id="exp-sala" onchange="updExpPrev()" style="min-width:90px"><option value="">Todas</option></select>
+        <label style="font-size:11px;color:var(--tx3)">Avocamiento:</label>
+        <select id="exp-avo" onchange="updExpPrev()">
+          <option value="">Todos</option><option>SI</option><option>NO</option><option>no aplica</option>
+        </select>
+        <label style="font-size:11px;color:var(--tx3)">Resuelto:</label>
+        <select id="exp-res" onchange="updExpPrev()">
+          <option value="">Todos</option><option>SI</option><option>NO</option>
+        </select>
+      </div>
+      <div class="rg">
+        <label style="font-size:11px;color:var(--tx3)">Fecha foto:</label>
+        <input type="text" id="exp-fecha" placeholder="DD/MM/AAAA" style="width:110px">
+      </div>
+      <div id="exp-prev" style="font-size:11px;color:var(--tx3);font-family:var(--mn)"></div>
+      <div class="rg">
+        <button class="btn btn-e" onclick="EXP()">⬇ Exportar Excel</button>
+        <button class="btn" onclick="PRV()">👁 Previsualizar</button>
+      </div>
+    </div>
+  </div>
+  <div id="exp-wrap"></div>
+</div>
+
+<!-- PARA REVISAR -->
+<div id="revisar" class="sec">
+  <div class="pt">Para revisar manualmente</div>
+  <div class="ps">Causas que no tienen datos suficientes para completar automáticamente</div>
+  <div id="rev-c"><div class="empty">Procesá los archivos primero.</div></div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ===== MAPAS =====
+const MP = {"5":"Especiales","6":"Especiales","7":"Especiales","9":"Otros","28":"Especiales","29":"Otros","30":"Especiales","31":"Otros","32":"Otros","33":"Otros","34":"Otros","35":"Otros","36":"Otros","37":"Otros","38":"Otros","39":"Otros","40":"Otros","41":"Otros","42":"Otros","57":"Especiales","58":"Especiales","64":"Otros","67":"Otros","70":"Otros","71":"Otros","74":"Especiales","75":"Ordinario","76":"Especiales","77":"Especiales","78":"Especiales","79":"Especiales","80":"Otros","81":"Ordinario","82":"Ordinario","83":"Ordinario","84":"Otros","85":"Especiales","86":"Especiales","87":"Otros","88":"Otros","89":"Otros","91":"Otros","92":"Otros","93":"Especiales","94":"Otros","95":"Especiales","96":"Especiales","97":"Especiales","98":"Otros","99":"Otros","100":"Otros","101":"Otros","102":"Otros","103":"Otros","104":"Otros","107":"Especiales","108":"Otros","109":"Especiales","110":"Especiales","111":"Especiales","112":"Otros","113":"Otros","114":"Otros","116":"Otros","117":"Ordinario","118":"Otros","119":"Otros","120":"Otros","121":"Especiales","122":"Especiales","123":"Especiales","124":"Especiales","125":"Otros","127":"Especiales","128":"Especiales","129":"Especiales","130":"Otros","131":"Especiales","133":"Especiales","134":"Especiales","135":"Otros","136":"Especiales","137":"Especiales","138":"Especiales","139":"Ordinario","140":"Otros","141":"Otros","143":"Especiales","144":"Especiales","145":"Otros","147":"Otros","149":"Otros","151":"Otros","155":"Especiales","160":"Otros","161":"Ordinario","165":"Otros","171":"Otros","172":"Otros","173":"Otros","174":"Otros","176":"Otros","177":"Otros","189":"Especiales","190":"Otros","191":"Especiales","192":"Otros","193":"Otros","194":"Otros","195":"Otros","197":"Especiales","199":"Otros","201":"Especiales","217":"Otros","220":"Otros","226":"Otros","238":"Otros","240":"Otros","241":"Ordinario","242":"Otros","246":"Otros","272":"Otros","285":"Otros","286":"Especiales","290":"Especiales","304":"Otros","306":"Especiales","307":"Otros","308":"Otros","309":"Otros","310":"Otros","311":"Otros","312":"Otros","313":"Otros","314":"Especiales","315":"Especiales","316":"Especiales","317":"Especiales","318":"Especiales","319":"Ordinario","320":"Otros","321":"Ordinario","322":"Ordinario","323":"Ordinario","324":"Ordinario","325":"Ordinario","326":"Ordinario","327":"Ordinario","328":"Ordinario","329":"Ordinario","330":"Ordinario","331":"Ordinario","332":"Ordinario","333":"Ordinario","334":"Ordinario","335":"Especiales","336":"Especiales","337":"Especiales","338":"Especiales","339":"Especiales","340":"Otros","341":"Especiales","342":"Otros","343":"Ordinario","344":"Ordinario","376":"Especiales","378":"Especiales","389":"Otros","390":"Otros","391":"Otros","392":"Otros","393":"Otros","394":"Otros","395":"Otros","396":"Otros","397":"Otros","403":"Especiales","410":"Otros","411":"Especiales","415":"Otros","417":"Otros","419":"Especiales","420":"Otros","423":"Otros","424":"Otros","425":"Otros","426":"Otros","427":"Otros","428":"Otros","432":"Otros","436":"Otros","437":"Especiales","438":"Otros","439":"Otros","441":"Otros","442":"Otros","443":"Otros","446":"Especiales","447":"Especiales","449":"Especiales","451":"Especiales","458":"Especiales","460":"Especiales","461":"Especiales","462":"Especiales","463":"Especiales","464":"Especiales","465":"Especiales","487":"Ordinario","488":"Ordinario","489":"Ordinario","490":"Ordinario","491":"Ordinario","493":"Ordinario","502":"Especiales","504":"Especiales","519":"Otros","528":"Especiales","533":"Otros","534":"Otros","538":"Especiales","541":"Ordinario","542":"Ordinario","548":"Ordinario","552":"Otros","587":"Otros","591":"Otros","592":"Otros","595":"Otros","598":"Otros","601":"Especiales","602":"Especiales","603":"Especiales","604":"Especiales","607":"Especiales","608":"Especiales","612":"Especiales","613":"Especiales","614":"Otros","615":"Otros","616":"Otros","618":"Otros","619":"Otros","622":"Especiales","625":"Especiales","627":"Especiales","628":"Especiales","629":"Especiales","631":"Otros","634":"Otros","635":"Otros","640":"Otros","641":"Otros","642":"Especiales","643":"Otros","644":"Ordinario","677":"Especiales","678":"Especiales","679":"Especiales","680":"Especiales","681":"Especiales","682":"Especiales","683":"Especiales","685":"Especiales","690":"Otros","694":"Especiales","695":"Otros","698":"Especiales","701":"Especiales","708":"Especiales","709":"Especiales","713":"Otros","716":"Otros","722":"Otros","723":"Otros","724":"Otros","727":"Otros","750":"Otros","752":"Otros","754":"Especiales","755":"Otros","759":"Especiales","760":"Otros","796":"Especiales","797":"Otros","799":"Otros","809":"PDA","810":"Especiales","811":"Especiales","812":"Otros","814":"Otros","817":"Especiales","826":"Especiales","864":"Especiales","865":"Especiales","871":"Otros","886":"Otros","889":"Otros","893":"Especiales","895":"Otros","897":"Especiales","898":"Otros","899":"Otros","901":"Otros","902":"Especiales","903":"Especiales","905":"Especiales","906":"Otros","907":"Otros","908":"Otros","912":"Ordinario","913":"Ordinario","914":"Ordinario","915":"Ordinario","916":"Ordinario","917":"Ordinario","918":"Ordinario","919":"Ordinario","920":"Ordinario","921":"Ordinario","922":"Ordinario","924":"Especiales","928":"Especiales","929":"Especiales","932":"Especiales","892":"PDA","808":"PDA","939":"PDA","940":"Otros"};
+
+const MAPA_DEP_CAM = {
+  "182":{sala:"SALA 1",sec:"SEC. 1",nom:"SALA 1 - SEC. 1"},
+  "183":{sala:"SALA 1",sec:"SEC. 2",nom:"SALA 1 - SEC. 2"},
+  "184":{sala:"SALA 2",sec:"SEC. 3",nom:"SALA 2 - SEC. 3"},
+  "185":{sala:"SALA 2",sec:"SEC. 4",nom:"SALA 2 - SEC. 4"},
+  "186":{sala:"SALA 3",sec:"SEC. 5",nom:"SALA 3 - SEC. 5"},
+  "187":{sala:"SALA 3",sec:"SEC. 6",nom:"SALA 3 - SEC. 6"},
+  "188":{sala:"SALA 4",sec:"SEC. 7",nom:"SALA 4 - SEC. 7"},
+  "189":{sala:"SALA 4",sec:"SEC. 8",nom:"SALA 4 - SEC. 8"},
+  "190":{sala:"SALA 5",sec:"SEC. 9",nom:"SALA 5 - SEC. 9"},
+  "191":{sala:"SALA 5",sec:"SEC.10",nom:"SALA 5 - SEC.10"},
+  "192":{sala:"SALA 6",sec:"SEC.11",nom:"SALA 6 - SEC.11"},
+  "193":{sala:"SALA 6",sec:"SEC.12",nom:"SALA 6 - SEC.12"},
+  "194":{sala:"SALA 7",sec:"SEC.13",nom:"SALA 7 - SEC.13"},
+  "195":{sala:"SALA 7",sec:"SEC.14",nom:"SALA 7 - SEC.14"},
+  "196":{sala:"SALA 8",sec:"SEC.15",nom:"SALA 8 - SEC.15"},
+  "197":{sala:"SALA 8",sec:"SEC.16",nom:"SALA 8 - SEC.16"},
+  "198":{sala:"SALA 9",sec:"SEC.17",nom:"SALA 9 - SEC.17"},
+  "199":{sala:"SALA 9",sec:"SEC.18",nom:"SALA 9 - SEC.18"},
+  "200":{sala:"SALA 10",sec:"SEC.19",nom:"SALA 10 - SEC.19"},
+  "201":{sala:"SALA 10",sec:"SEC.20",nom:"SALA 10 - SEC.20"},
+  "202":{sala:"SALA 11",sec:"SEC.21",nom:"SALA 11 - SEC.21"},
+  "203":{sala:"SALA 11",sec:"SEC.22",nom:"SALA 11 - SEC.22"}
+};
+const SALAS = ["SALA 1","SALA 2","SALA 3","SALA 4","SALA 5","SALA 6","SALA 7","SALA 8","SALA 9","SALA 10","SALA 11"];
+const SEC_POR_SALA = {
+  "SALA 1":["SEC. 1","SEC. 2"],"SALA 2":["SEC. 3","SEC. 4"],"SALA 3":["SEC. 5","SEC. 6"],
+  "SALA 4":["SEC. 7","SEC. 8"],"SALA 5":["SEC. 9","SEC.10"],"SALA 6":["SEC.11","SEC.12"],
+  "SALA 7":["SEC.13","SEC.14"],"SALA 8":["SEC.15","SEC.16"],"SALA 9":["SEC.17","SEC.18"],
+  "SALA 10":["SEC.19","SEC.20"],"SALA 11":["SEC.21","SEC.22"]
+};
+const RESOLUCION_TIPOS = [
+  "Sentencia","Acuerdo (Sentencia Homologación)","Sentencia con allanamiento",
+  "Sentencia (Juzg.Lab.-Ejecutivos)","Sumaria Información (Auto)",
+  "Desistimiento de la Acción (Sentencia Homologación)",
+  "Desistimiento de la Acción (Sentencia que lo resuelve)",
+  "Desistimiento de la Acción y Derecho (Sentencia Homologación)",
+  "Desistimiento de la Acción y del Derecho (Sentencia que lo resuelve)",
+  "Desistimiento de la Acción y Derecho (Sentencia Homologación)",
+  "Desistimiento de la Acción y del Derecho  (Auto/Resoluc.)",
+  "Modos anorm.Auto desistimiento - concluye juicio principal",
+  "Modos anorm.Auto homologación/transacción - concluye juicio principal"
+];
+
+// ===== ESTADO =====
+let D = {stock:null, foto:null, res:null, ing:null, avo:null, fij:null, act:null};
+let PEND_FILES = [];
+let _foto = [];
+let _revisar = [];
+let CH = {};
+let _pendModal = null;
+
+// ===== HELPERS =====
+const fm = n => Number(n||0).toLocaleString('es-AR');
+function getSalaFromIdDep(idDep) {
+  const d = MAPA_DEP_CAM[String(idDep)];
+  return d ? d.sala : null;
+}
+function parseFecha(s) {
+  if (!s) return null;
+  if (s instanceof Date) return isNaN(s)?null:s;
+  const str = String(s).trim().split(' ')[0];
+  // DD/MM/YYYY o DD-MM-YYYY
+  const m1 = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (m1) return new Date(m1[3]+'-'+m1[2].padStart(2,'0')+'-'+m1[1].padStart(2,'0'));
+  // YYYY-MM-DD
+  const m2 = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if (m2) return new Date(str);
+  // Numero serial Excel (ej: 45678)
+  const n = Number(str);
+  if (!isNaN(n) && n > 40000 && n < 60000) {
+    const base = new Date(Date.UTC(1900,0,1));
+    base.setUTCDate(base.getUTCDate() + n - 2);
+    return base;
+  }
+  return null;
+}
+function fmtFecha(d) {
+  if (!d) return '';
+  // Limpiar hora si viene con HH:MM
+  const s = String(d).trim().split(' ')[0];
+  // Si ya viene en DD/MM/YYYY devolver directo
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) return s;
+  const fd = parseFecha(s);
+  if (!fd || isNaN(fd)) return s;
+  // Formato manual DD/MM/YYYY para evitar problema de locale
+  const dd = String(fd.getDate()).padStart(2,'0');
+  const mm = String(fd.getMonth()+1).padStart(2,'0');
+  const aaaa = fd.getFullYear();
+  return dd+'/'+mm+'/'+aaaa;
+}
+function getSala(idDep) {
+  const d = MAPA_DEP_CAM[String(idDep)];
+  return d ? d.sala : null;
+}
+function getClave(idExp, sala) {
+  return String(idExp).trim()+'-'+sala;
+}
+function ss(t,c,m) { const el=document.getElementById('st-'+t); if(el){el.className='st '+c;el.textContent=m;} }
+
+// ===== DRAG DROP =====
+const OV = e => { e.preventDefault(); e.currentTarget.classList.add('ov'); };
+const OL = e => e.currentTarget.classList.remove('ov');
+function DR(e,t) { e.preventDefault(); e.currentTarget.classList.remove('ov'); const f=e.dataTransfer.files[0]; if(f) LF({files:[f]},t); }
+
+// ===== CARGA XLSX =====
+function LF(inp, tipo) {
+  const file = inp.files[0]; if (!file) return;
+  if (tipo === 'pend') { loadPendModal(file); return; }
+  const esCSV = file.name.toLowerCase().endsWith('.csv');
+  if (esCSV) { leerCSV(file, tipo); return; }
+  ss(tipo,'stl','⏳ Leyendo...');
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array', cellDates:false, raw:false});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      let rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      // Buscar fila de encabezados: la más densa entre las primeras 6
+      let hr=0, mx=0;
+      for(let i=0;i<Math.min(6,rows.length);i++){
+        const f=rows[i].filter(c=>c!==''&&c!==null).length;
+        if(f>mx){mx=f;hr=i;}
+      }
+      const hdrs = rows[hr].map(h=>String(h).trim());
+      D[tipo] = rows.slice(hr+1).filter(r=>r.some(c=>c!==''&&c!==null)).map(row=>{
+        const o={};hdrs.forEach((h,i)=>{o[h]=row[i]??''});return o;
+      });
+      ss(tipo,'sto','✓ '+D[tipo].length.toLocaleString('es-AR')+' registros');
+    } catch(err) { ss(tipo,'ste','✗ Error al leer'); console.error(err); }
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function leerCSV(file, tipo) {
+  ss(tipo,'stl','⏳ Leyendo CSV...');
+  const pb = document.getElementById('pb-'+tipo);
+  if(pb) pb.style.display='block';
+  const r = new FileReader();
+  r.onprogress = e => {
+    if(e.lengthComputable && pb) {
+      const pct = Math.round(e.loaded/e.total*100);
+      const pf = document.getElementById('pf-'+tipo);
+      if(pf) pf.style.width = pct+'%';
+    }
+  };
+  r.onload = e => {
+    try {
+      // TextDecoder: mucho mas rapido que char-by-char
+      const decoder = new TextDecoder('iso-8859-1');
+      const txt = decoder.decode(new Uint8Array(e.target.result));
+      if(pb) pb.style.display='none';
+      ss(tipo,'stl','⚙ Procesando...');
+      setTimeout(() => {
+        try {
+          const lines = txt.split('\n');
+          const sep = lines[0].includes(';') ? ';' : ',';
+          const hdrs = lines[0].split(sep).map(h=>h.replace(/^"|"$/g,'').trim());
+          const iIdExp = hdrs.indexOf('IdExpediente');
+          const iFecha = hdrs.indexOf('FechaOperacion');
+          const iTipo  = hdrs.indexOf('TipoOperacion');
+          const iDep   = hdrs.indexOf('DependenciaOperacion');
+          D[tipo] = [];
+          const SALA_RE = /SALA\s+(\d+)/i;
+          for(let i=1;i<lines.length;i++){
+            const line = lines[i];
+            if(!line.trim()) continue;
+            const cols = line.split(sep);
+            const dep = (cols[iDep]||'').replace(/^"|"$/g,'').trim();
+            const mSala = dep.match(SALA_RE);
+            if(!mSala) continue; // ignorar filas sin sala
+            const idExp = (cols[iIdExp]||'').replace(/^"|"$/g,'').trim();
+            if(!idExp) continue;
+            const sala = 'SALA '+mSala[1];
+            const fechaRaw = (cols[iFecha]||'').replace(/^"|"$/g,'').trim();
+            D[tipo].push({
+              _clave: idExp+'-'+sala,
+              _sala: sala,
+              _fecha: fechaRaw.split(' ')[0],
+              _tipoOp: (cols[iTipo]||'').replace(/^"|"$/g,'').trim()
+            });
+          }
+          ss(tipo,'sto','✓ '+D[tipo].length.toLocaleString('es-AR')+' registros');
+        } catch(err2) { ss(tipo,'ste','✗ Error'); console.error(err2); }
+      }, 30);
+    } catch(err) { if(pb)pb.style.display='none'; ss(tipo,'ste','✗ '+err.message.substring(0,30)); console.error(err); }
+  };
+  r.readAsArrayBuffer(file);
+}
+
+// ===== PENDIENTES MODAL =====
+function loadPendModal(file) {
+  _pendModal = file;
+  document.getElementById('modal-filename').textContent = file.name;
+  document.getElementById('modal-sala-sel').value = '';
+  document.getElementById('modal-sec-sel').innerHTML = '<option value="">Secretaría...</option>';
+  document.getElementById('modal-sala').style.display = 'flex';
+}
+
+document.getElementById('modal-sala-sel').addEventListener('change', function() {
+  const secs = SEC_POR_SALA[this.value] || [];
+  const sel = document.getElementById('modal-sec-sel');
+  sel.innerHTML = '<option value="">Secretaría...</option>' + secs.map(s=>'<option>'+s+'</option>').join('');
+});
+
+function confirmarSala() {
+  const sala = document.getElementById('modal-sala-sel').value;
+  const sec = document.getElementById('modal-sec-sel').value;
+  if (!sala || !sec) { alert('Seleccioná sala y secretaría'); return; }
+  document.getElementById('modal-sala').style.display = 'none';
+  leerPendFile(_pendModal, sala, sec);
+  _pendModal = null;
+  _pendQueueIdx++;
+  mostrarModalQueue();
+}
+
+function cancelarModal() {
+  document.getElementById('modal-sala').style.display = 'none';
+  _pendModal = null;
+}
+
+// ===== CARGA MÚLTIPLE PENDIENTES =====
+function dropPend(e) {
+  e.preventDefault(); e.currentTarget.classList.remove('ov');
+  const files = [...e.dataTransfer.files].filter(f=>f.name.endsWith('.xlsx'));
+  procesarPendFiles(files);
+}
+
+function LFPendMulti(inp) {
+  const files = [...inp.files];
+  procesarPendFiles(files);
+  inp.value = '';
+}
+
+function detectarSalaSecDesdeNombre(filename) {
+  // Convenciones: pendientes_sala1_sec1.xlsx, pend_s1_sec1.xlsx, sala1sec1.xlsx, etc.
+  const fn = filename.toLowerCase().replace(/[_\-\s]/g,'');
+  const m1 = fn.match(/sala(\d{1,2})sec\.?(\d{1,2})/);
+  if (m1) return {sala:'SALA '+m1[1], sec:'SEC.'+m1[2].padStart(2,' ')};
+  const m2 = fn.match(/s(\d{1,2})sec(\d{1,2})/);
+  if (m2) return {sala:'SALA '+m2[1], sec:'SEC.'+m2[2].padStart(2,' ')};
+  // Detectar sala sin sec
+  const m3 = fn.match(/sala(\d{1,2})/);
+  if (m3) return {sala:'SALA '+m3[1], sec:null};
+  return null;
+}
+
+let _pendQueue = [];
+let _pendQueueIdx = 0;
+
+function procesarPendFiles(files) {
+  if (!files.length) return;
+  const noDetectados = [];
+  const detectados = [];
+  files.forEach(f => {
+    const det = detectarSalaSecDesdeNombre(f.name);
+    if (det && det.sala && det.sec) {
+      detectados.push({file:f, sala:det.sala, sec:det.sec});
+    } else {
+      noDetectados.push(f);
+    }
+  });
+  // Procesar detectados directamente
+  detectados.forEach(d => leerPendFile(d.file, d.sala, d.sec));
+  // Encolar los no detectados para modal
+  if (noDetectados.length > 0) {
+    _pendQueue = noDetectados;
+    _pendQueueIdx = 0;
+    mostrarModalQueue();
+  }
+  document.getElementById('pend-cola').style.display = 'none';
+}
+
+function mostrarModalQueue() {
+  if (_pendQueueIdx >= _pendQueue.length) {
+    _pendQueue = []; _pendQueueIdx = 0;
+    return;
+  }
+  _pendModal = _pendQueue[_pendQueueIdx];
+  document.getElementById('modal-filename').textContent =
+    '('+(_pendQueueIdx+1)+' de '+_pendQueue.length+') '+_pendModal.name;
+  document.getElementById('modal-sala-sel').value = '';
+  document.getElementById('modal-sec-sel').innerHTML = '<option value="">Secretaría...</option>';
+  document.getElementById('modal-sala').style.display = 'flex';
+}
+
+function leerPendFile(file, sala, sec) {
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const mergedVals = {};
+      for (const range of ws['!merges']||[]) {
+        const masterCell = ws[XLSX.utils.encode_cell({r:range.s.r,c:range.s.c})];
+        const val = masterCell ? masterCell.v : '';
+        for(let rr=range.s.r;rr<=range.e.r;rr++){
+          for(let cc=range.s.c;cc<=range.e.c;cc++){
+            mergedVals[rr+','+cc]=val;
+          }
+        }
+      }
+      const getVal = (r,c) => {
+        const k = r+','+c;
+        if (mergedVals.hasOwnProperty(k)) return mergedVals[k];
+        const cell = ws[XLSX.utils.encode_cell({r,c})];
+        return cell ? cell.v : '';
+      };
+      const rows = [];
+      const maxRow = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']).e.r : 0;
+      for(let row=5;row<=maxRow;row++){
+        const nroExp = getVal(row,1);
+        if (!nroExp) continue;
+        rows.push({
+          nroExp:String(nroExp).trim(),
+          inicioExp:getVal(row,2),
+          caratula:getVal(row,3),
+          tipoJuicio:getVal(row,5),
+          tipoOp:getVal(row,7),
+          inicioOp:getVal(row,10),
+          nroOp:getVal(row,11),
+          instructor:getVal(row,12),
+          sala:sala, sec:sec, dep:sala+' - '+sec
+        });
+      }
+      // Reemplazar si ya existe esa sala/sec
+      const idx = PEND_FILES.findIndex(p=>p.sala===sala&&p.sec===sec);
+      if (idx>=0) PEND_FILES[idx]={sala,sec,rows,filename:file.name};
+      else PEND_FILES.push({sala,sec,rows,filename:file.name});
+      updPendList();
+    } catch(err) { console.error('Error leyendo '+file.name, err); }
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function updPendList() {
+  const el = document.getElementById('pend-list');
+  const st = document.getElementById('st-pend');
+  if (!PEND_FILES.length) {
+    el.textContent = 'Sin archivos cargados aún';
+    if(st) st.className='st stw'; if(st) st.textContent='⏳ Sin archivos';
+    return;
+  }
+  // Agrupar por sala
+  const bySala = {};
+  PEND_FILES.forEach(f=>{ if(!bySala[f.sala]) bySala[f.sala]=[]; bySala[f.sala].push(f); });
+  let html = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">';
+  Object.entries(bySala).sort((a,b)=>a[0]>b[0]?1:-1).forEach(([sala,files]) => {
+    files.forEach((f,i) => {
+      const idx = PEND_FILES.indexOf(f);
+      html += '<div style="display:flex;align-items:center;gap:4px;background:var(--acl);border-radius:5px;padding:2px 7px;font-size:10px;font-family:var(--mn)">';
+      html += '<span style="color:var(--res)">✓</span>';
+      html += '<span>'+f.sala.replace('SALA ','S')+' '+f.sec+'</span>';
+      html += '<span style="color:var(--tx3)">('+f.rows.length+')</span>';
+      html += '<span style="color:var(--wa);cursor:pointer;margin-left:2px" onclick="rmPend('+idx+')">✕</span></div>';
+    });
+  });
+  html += '</div>';
+  if(st){ st.className='st sto'; st.textContent='✓ '+PEND_FILES.length+' archivos — '+PEND_FILES.reduce((a,f)=>a+f.rows.length,0).toLocaleString('es-AR')+' causas'; }
+  el.innerHTML = html;
+}
+function rmPend(i) { PEND_FILES.splice(i,1); updPendList(); }
+
+// ===== PROCESAR =====
+function PROC() {
+  const mp = document.getElementById('mp');
+  if (!D.stock) { mp.textContent='⚠ El stock activo es obligatorio.'; return; }
+  mp.textContent = '⚙ Indexando insumos...';
+  // Paso 1: indexar en primer timeout
+  setTimeout(() => {
+    try {
+      buildFoto();
+      mp.textContent = '⚙ Generando vistas...';
+      // Paso 2: render en segundo timeout para no bloquear
+      setTimeout(() => {
+        try {
+          buildDetalle();
+          buildPendView();
+          pobExp();
+          document.getElementById('exp-fecha').value = new Date().toLocaleDateString('es-AR');
+          document.getElementById('hdr-f').textContent = new Date().toLocaleDateString('es-AR');
+          mp.textContent = '✓ Listo — '+_foto.length.toLocaleString('es-AR')+' causas. Para revisar: '+_revisar.length;
+        } catch(err2) { mp.textContent = '✗ Error en vistas: '+err2.message; console.error(err2); }
+      }, 50);
+    } catch(err) { mp.textContent = '✗ Error: '+err.message; console.error(err); }
+  }, 80);
+}
+
+// ===== CONSTRUCCIÓN DE LA FOTO =====
+function buildFoto() {
+  // Indexar insumos por clave (idExpediente-SALA)
+  const IDX_RES = {};
+  const IDX_ING = {};
+  const IDX_AVO = {};
+  const IDX_FIJ = {};
+  const IDX_ACT = {};
+  const IDX_FOTO = {};
+  const IDX_PEND = {};
+
+  // Foto anterior
+  if (D.foto) {
+    D.foto.forEach(r => {
+      const k = String(r['Expediente - Sala']||r['Expedi ente - Sala']||'').trim();
+      if (k) IDX_FOTO[k] = r;
+    });
+  }
+
+  // Mapa de meses en texto
+  const MESES_NUM = {enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,
+    julio:7,agosto:8,septiembre:9,octubre:10,noviembre:11,diciembre:12};
+  function mesNum(s){ return MESES_NUM[String(s).toLowerCase().trim()]||0; }
+  function getSalaFromDep(dep){
+    const m = String(dep).match(/SALA\s+(\d+)/i);
+    return m ? 'SALA '+m[1] : '';
+  }
+
+  // RESOLUCIONES (CSV): IdExpediente + DependenciaOperacion -> clave
+  if (D.res) {
+    D.res.forEach(r => {
+      const k = r['_clave'] || String(r['Expediente - Sala']||'').trim();
+      const fecha = parseFecha((r['_fecha']||r['FechaOperacion']||'').split(' ')[0]);
+      const tipo = String(r['_tipoOp']||r['TipoOperacion']||'').trim();
+      if (!k || !tipo) return;
+      if (!IDX_RES[k]) IDX_RES[k] = {tipo, fecha, fStr: fmtFecha(fecha)};
+      else if (fecha && IDX_RES[k].fecha && fecha > IDX_RES[k].fecha)
+        IDX_RES[k] = {tipo, fecha, fStr: fmtFecha(fecha)};
+    });
+  }
+
+  // REMISIONES (xlsx Power BI): idExpediente + Fecha-Año/Mes/Dia -> fecha más antigua
+  if (D.ing) {
+    D.ing.forEach(r => {
+      const idE = String(r['idExpediente']||r['IdExpediente']||'').trim();
+      if (!idE || idE==='NaN') return;
+      let fecha = null;
+      if (r['Fecha - Año'] && r['Fecha - Mes']) {
+        const anio = Number(r['Fecha - Año']);
+        const mes = mesNum(r['Fecha - Mes']) || Number(r['Fecha - Mes']);
+        const dia = Number(r['Fecha - Día']||1)||1;
+        if (anio && mes) fecha = new Date(anio, mes-1, dia);
+      } else {
+        fecha = parseFecha(r['Fecha']||'');
+      }
+      if (idE && fecha && !isNaN(fecha)) {
+        if (!IDX_ING[idE] || fecha < IDX_ING[idE]) IDX_ING[idE] = fecha;
+      }
+    });
+  }
+
+  // AVOCAMIENTOS (xlsx Power BI): idDependencia -> sala, idExpediente -> clave
+  // Fecha: Fecha-Año + Fecha-Mes (texto). Toma la más reciente por clave.
+  if (D.avo) {
+    D.avo.forEach(r => {
+      const idDep = String(r['idDependencia']||'').trim();
+      const sala = getSalaFromIdDep(idDep);
+      if (!sala) return;
+      const idE = String(r['idExpediente']||'').trim();
+      if (!idE || idE==='NaN') return;
+      const k = idE+'-'+sala;
+      const anio = Number(r['Fecha - Año']||0);
+      const mes = mesNum(r['Fecha - Mes'])||0;
+      if (!IDX_AVO[k]||anio>IDX_AVO[k].anio||(anio===IDX_AVO[k].anio&&mes>IDX_AVO[k].mes))
+        IDX_AVO[k] = {anio, mes, fStr: anio ? (mes+'/'+ anio) : ''};
+    });
+  }
+
+  // FIJACIONES AVC (CSV): _clave desde DependenciaOperacion
+  if (D.fij) {
+    D.fij.forEach(r => {
+      const k = r['_clave'] || String(r['Expediente - Sala']||'').trim();
+      const fecha = parseFecha((r['_fecha']||r['FechaOperacion']||'').split(' ')[0]);
+      if (!k) return;
+      if (!IDX_FIJ[k]) IDX_FIJ[k] = {fecha, fStr: fmtFecha(fecha)};
+      else if (fecha && IDX_FIJ[k].fecha && fecha > IDX_FIJ[k].fecha)
+        IDX_FIJ[k] = {fecha, fStr: fmtFecha(fecha)};
+    });
+  }
+
+  // ACTAS AVC (CSV): _clave desde DependenciaOperacion
+  if (D.act) {
+    D.act.forEach(r => {
+      const k = r['_clave'] || String(r['Expediente - Sala']||'').trim();
+      const fecha = parseFecha((r['_fecha']||r['FechaOperacion']||'').split(' ')[0]);
+      if (!k) return;
+      if (!IDX_ACT[k]) IDX_ACT[k] = {fecha, fStr: fmtFecha(fecha)};
+      else if (fecha && IDX_ACT[k].fecha && fecha > IDX_ACT[k].fecha)
+        IDX_ACT[k] = {fecha, fStr: fmtFecha(fecha)};
+    });
+  }
+
+  // Pendientes
+  PEND_FILES.forEach(pf => {
+    pf.rows.forEach(r => {
+      const k = r.nroExp+'-'+r.sala;
+      IDX_PEND[k] = r;
+    });
+  });
+
+  _foto = [];
+  _revisar = [];
+
+  (D.stock||[]).forEach(row => {
+    const idE = String(row['idExpediente']||row['IdExpediente']||'').trim();
+    const idDep = String(row['idDependencia']||row['IdDependencia']||'').trim();
+    const dep = MAPA_DEP_CAM[idDep];
+    if (!dep) return; // no es Cámara
+
+    const sala = dep.sala;
+    const clave = getClave(idE, sala);
+
+    // Foto anterior
+    const fa = IDX_FOTO[clave] || {};
+    const faRes = String(fa['Ordinario Resuelto (si/no)']||fa['C']||'').trim();
+    const faAvo = String(fa['Avocamiento (si/no) actual']||fa['Avocamiento (si/no)']||fa['F']||'').trim();
+    const faAnoElev = fa['Año 1\xb0 elev.']||fa['Año de elevación']||fa['G']||'';
+    const faMesElev = fa['Mes 1\xb0 elev.']||fa['Mes de elevación']||fa['H']||'';
+    const faObs = fa['Observación']||fa['I']||'';
+    const faCaratula = fa['Carátula']||fa['J']||'';
+    const faTipoPrev = String(fa['Ordinario Resuelto (si/no) previo']||fa['L']||'').trim();
+    const faAvoPrev = String(fa['Avocamiento (si/no) previo']||fa['M']||'').trim();
+
+    // Tipo de juicio - usa idTipoJuicio + mapa embebido MP
+    const idTJ = String(row['idTipoJuicio']||'').trim();
+    const tipoProceso = idTJ ? (MP[String(Math.round(Number(idTJ)||0))]||'Otros') : 'Otros';
+    const tipoJuicio = String(row['Grupos y Dependencias']||row['Tipo de Juicio, Grupos y Dependencias']||tipoProceso).trim();
+
+    // === COL C: Ordinario Resuelto (si/no) actual ===
+    let colC, colD='', colE='';
+    if (tipoProceso !== 'Ordinario') {
+      colC = 'no aplica';
+    } else {
+      // Capa 1: foto anterior (columna "Ordinario Resuelto (si/no)")
+      if (faRes === 'SI') {
+        colC = 'SI';
+        colD = String(fa['Tipo de resolución']||'').trim();
+        colE = fmtFecha(String(fa['Fecha de resolución']||'').trim());
+      } else {
+        // Capa 2: resoluciones CSV
+        const res = IDX_RES[clave];
+        if (res && RESOLUCION_TIPOS.includes(res.tipo)) {
+          colC = 'SI';
+          colD = res.tipo;
+          colE = res.fStr;
+        } else {
+          colC = 'NO';
+        }
+      }
+    }
+
+    // === COL F: Avocamiento (si/no) actual ===
+    let colF;
+    if (colC === 'SI' || tipoProceso !== 'Ordinario') {
+      colF = 'no aplica';
+    } else {
+      // Capa 1: foto anterior (columna "Avocamiento (si/no) actual")
+      if (faAvo === 'SI') {
+        colF = 'SI';
+      } else {
+        // Capa 2: avocamientos + fijaciones + actas
+        const tieneAvo = IDX_AVO[clave] || IDX_FIJ[clave] || IDX_ACT[clave];
+        colF = tieneAvo ? 'SI' : 'NO';
+      }
+    }
+
+    // === COL G/H: Año y Mes de elevación ===
+    let colG = '', colH = '';
+    if (tipoProceso !== 'Ordinario' || colC === 'SI') {
+      colG = 'no aplica'; colH = 'no aplica';
+    } else {
+      // Capa 1: foto anterior
+      const faAnoStr = String(faAnoElev||'').trim();
+      if (faAnoStr && faAnoStr !== 'revisar en sac' && faAnoStr !== 'no aplica' && faAnoStr !== 'NaN') {
+        colG = faAnoStr;
+        colH = String(faMesElev||'').trim();
+      } else {
+        // Capa 2: remisiones
+        const fechaEle = IDX_ING[idE];
+        if (fechaEle && !isNaN(fechaEle)) {
+          colG = fechaEle.getFullYear();
+          colH = fechaEle.getMonth()+1;
+        } else {
+          colG = 'revisar en sac';
+          colH = 'revisar en sac';
+        }
+      }
+    }
+
+    // === COL I: Observación ===
+    const colI = faObs;
+
+    // === COL J: Carátula ===
+    const pend = IDX_PEND[clave];
+    let colJ = faCaratula || (pend ? pend.caratula : '') || 'S/I';
+
+    // === Columnas N, O, P: últimas fechas de avocamiento ===
+    const colN = IDX_AVO[clave]?.fStr || '';
+    const colO = IDX_FIJ[clave]?.fStr || '';
+    const colP = IDX_ACT[clave]?.fStr || '';
+
+    // Marcar para revisar
+    const paraRevisar = colC !== 'SI' && tipoProceso === 'Ordinario' && (colG === 'revisar en sac');
+
+    const obj = {
+      clave, sala, sec: dep.sec, dep: dep.nom, idE,
+      tipoJuicio, tipoProceso,
+      colC, colD, colE, colF,
+      colG: String(colG), colH: String(colH),
+      colI, colJ, colN, colO, colP,
+      faTipoPrev: faTipoPrev||'no figura',
+      faAvoPrev: faAvoPrev||'no figura',
+      paraRevisar,
+      // datos extra del stock
+      idDep,
+      caratulaPend: pend?.caratula||'',
+      ultimaOp: pend?.tipoOp||'',
+      fechaOp: pend?.inicioOp||''
+    };
+
+    _foto.push(obj);
+    if (paraRevisar) _revisar.push(obj);
+  });
+
+  renderFoto();
+  renderRevisar();
+}
+
+// ===== RENDER FOTO (tabla dinámica) =====
+function renderFoto() {
+  const total = _foto.length;
+  const resueltas = _foto.filter(r=>r.colC==='SI').length;
+  const avocadas = _foto.filter(r=>r.colF==='SI').length;
+  const sinAvo = _foto.filter(r=>r.colF==='NO').length;
+  const revisar = _revisar.length;
+
+  // Contadores de motivos especiales de ingreso (ordinarias no resueltas)
+  const ordNoRes = _foto.filter(r=>r.tipoProceso==='Ordinario'&&r.colC!=='SI');
+  const ctApel   = ordNoRes.filter(r=>String(r.colG).toLowerCase().includes('apel')).length;
+  const ctAdef   = ordNoRes.filter(r=>String(r.colG).toLowerCase().includes('efectum')||String(r.colG).toLowerCase().includes('efect')).length;
+  const ctSinInf = ordNoRes.filter(r=>r.colG==='revisar en sac').length;
+  const noAplica = _foto.filter(r=>r.tipoProceso!=='Ordinario').length;
+
+  // Construir tabla dinámica: Avocamiento × Año × Sala
+  // Incluir apelación y ad efectum videndi como filas especiales
+  const MOTIVOS_ESP = ['apelación','ad efectum videndi'];
+  const bySalaAvoAnio = {};
+  _foto.forEach(r => {
+    if (r.tipoProceso !== 'Ordinario') return;
+    if (r.colC === 'SI') return;
+    const avo = r.colF === 'SI' ? 'SI' : (r.colF === 'NO' ? 'NO' : 'no aplica');
+    if (avo === 'no aplica') return;
+    const colGstr = String(r.colG||'').toLowerCase().trim();
+    let anio;
+    if (colGstr.includes('apel')) anio = 'apelación';
+    else if (colGstr.includes('efectum')||colGstr.includes('efect')) anio = 'ad efectum videndi';
+    else if (colGstr === 'revisar en sac' || !r.colG || r.colG==='') anio = 'revisar en sac';
+    else anio = String(r.colG);
+    const sala = r.sala;
+    if (!bySalaAvoAnio[avo]) bySalaAvoAnio[avo] = {};
+    if (!bySalaAvoAnio[avo][anio]) bySalaAvoAnio[avo][anio] = {};
+    bySalaAvoAnio[avo][anio][sala] = (bySalaAvoAnio[avo][anio][sala]||0)+1;
+  });
+
+  // Años únicos ordenados
+  const aniosSet = new Set();
+  ['SI','NO'].forEach(avo => {
+    if (bySalaAvoAnio[avo]) Object.keys(bySalaAvoAnio[avo]).forEach(a => aniosSet.add(a));
+  });
+  const ORDEN_ESP = ['apelación','ad efectum videndi','revisar en sac'];
+  const anios = [...aniosSet].sort((a,b) => {
+    const ia = ORDEN_ESP.indexOf(a), ib = ORDEN_ESP.indexOf(b);
+    if (ia>=0 && ib>=0) return ia-ib;
+    if (ia>=0) return 1;
+    if (ib>=0) return -1;
+    return Number(a)-Number(b);
+  });
+
+  let h = '<div class="mg">';
+  h += '<div class="m"><div class="ml">Total causas</div><div class="mv" style="color:var(--ac)">'+fm(total)+'</div></div>';
+  h += '<div class="m"><div class="ml">Resueltas</div><div class="mv" style="color:var(--res)">'+fm(resueltas)+'</div><div class="ms">'+(total?Math.round(resueltas/total*100):0)+'%</div></div>';
+  h += '<div class="m"><div class="ml">Avocadas</div><div class="mv" style="color:var(--avo)">'+fm(avocadas)+'</div></div>';
+  h += '<div class="m"><div class="ml">Sin avocar</div><div class="mv" style="color:var(--sinr)">'+fm(sinAvo)+'</div></div>';
+  h += '<div class="m"><div class="ml">Apelación</div><div class="mv" style="color:var(--tx2);font-size:17px">'+fm(ctApel)+'</div><div class="ms">ingreso especial</div></div>';
+  h += '<div class="m"><div class="ml">Ad efectum videndi</div><div class="mv" style="color:var(--tx2);font-size:17px">'+fm(ctAdef)+'</div><div class="ms">ingreso especial</div></div>';
+  h += '<div class="m"><div class="ml">Sin dato elevación</div><div class="mv" style="color:var(--wa);font-size:17px">'+fm(ctSinInf)+'</div><div class="ms">revisar en SAC</div></div>';
+  h += '<div class="m"><div class="ml">No ordinarias</div><div class="mv" style="color:var(--tx3);font-size:17px">'+fm(noAplica)+'</div><div class="ms">no aplica análisis</div></div>';
+  h += '</div>';
+
+  if (revisar > 0) h += '<div class="al al-w">⚠ <strong>'+fm(revisar)+' causas</strong> sin datos suficientes para completar automáticamente. Ver pestaña "Para revisar".</div>';
+
+  // Tabla dinámica
+  h += '<div class="card">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:.7rem">';
+  h += '<div class="ct" style="margin-bottom:0">Avocamiento × Año de elevación × Sala</div>';
+  h += '<div style="display:flex;gap:7px;align-items:center">';
+  h += '<button class="btn" onclick="toggleAnios()" id="btn-anios" style="font-size:10px">▼ Mostrar años</button>';
+  h += '<button class="btn" onclick="imprimirFoto()" style="font-size:10px">🖨 Imprimir / PDF</button>';
+  h += '</div></div>';
+
+  // Chips de filtro por año
+  const todosAniosOrdenados = [...aniosSet].sort((a,b)=>{
+    const esp = ['apelacion','efectum','revisar'];
+    const ia = esp.findIndex(e=>String(a).toLowerCase().includes(e));
+    const ib = esp.findIndex(e=>String(b).toLowerCase().includes(e));
+    if(ia>=0&&ib>=0) return ia-ib;
+    if(ia>=0) return 1; if(ib>=0) return -1;
+    return Number(a)-Number(b);
+  });
+  h += '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.8rem;align-items:center;padding:.6rem .8rem;background:var(--bg);border-radius:7px;border:1px solid var(--bdr)">';
+  h += '<span style="font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-right:4px">Filtrar años:</span>';
+  h += '<span class="fchip fc-s active" data-anio="__todos__" onclick="filtrarAnio(this)" style="font-size:10px;padding:3px 9px">Todos</span>';
+  todosAniosOrdenados.forEach(function(a) {
+    var isEsp = isNaN(Number(a));
+    var cls = isEsp ? 'fc-n' : 'fc-a';
+    var lbl = a==='revisar en sac'?'Sin dato elevacion':a==='apelacion'||String(a).toLowerCase().includes('apel')?'Apelacion':String(a).toLowerCase().includes('efectum')?'Ad efectum':String(a);
+    h += '<span class="fchip '+cls+'" data-anio="'+a+'" onclick="filtrarAnio(this)" style="font-size:10px;padding:3px 9px">'+lbl+'</span>';
+  });
+  h += '<button class="fclr" onclick="resetFiltroAnio()" style="font-size:9px;margin-left:4px">✕ Todos</button>';
+  h += '</div>';
+
+  h += '<div class="print-header" id="print-title">Foto Cámara del Trabajo — '+new Date().toLocaleDateString('es-AR')+'</div>';
+  h += '<div class="td-wrap"><table id="tabla-foto"><thead><tr><th>Avocam. / Año</th>';
+  SALAS.forEach(s => h += '<th>'+s.replace('SALA ','S')+'</th>');
+  h += '<th>Total</th></tr></thead><tbody>';
+
+  ['SI','NO'].forEach(avo => {
+    if (!bySalaAvoAnio[avo]) return;
+    const cls = avo==='SI' ? 'row-avo' : 'row-noavo';
+    const label = avo==='SI' ? '✓ Avocadas (SI)' : '✗ Sin avocar (NO)';
+
+    // Total por grupo
+    let totGrupo = 0;
+    const totSalaGrupo = {};
+    anios.forEach(anio => {
+      SALAS.forEach(s => {
+        const v = bySalaAvoAnio[avo]?.[anio]?.[s]||0;
+        totSalaGrupo[s] = (totSalaGrupo[s]||0)+v;
+        totGrupo += v;
+      });
+    });
+
+    h += '<tr class="'+cls+'"><td colspan="'+(SALAS.length+2)+'">'+label+' — '+totGrupo+' causas</td></tr>';
+
+    anios.forEach(anio => {
+      if (!bySalaAvoAnio[avo]?.[anio]) return;
+      let totAnio = 0;
+      SALAS.forEach(s => totAnio += (bySalaAvoAnio[avo][anio][s]||0));
+      if (!totAnio) return;
+      h += '<tr class="row-sub anio-row" data-anio="'+anio+'"><td style="padding-left:18px">'+anio+'</td>';
+      SALAS.forEach(s => {
+        const v = bySalaAvoAnio[avo][anio][s]||0;
+        h += '<td>'+(v||'')+'</td>';
+      });
+      h += '<td><strong>'+totAnio+'</strong></td></tr>';
+    });
+
+    h += '<tr class="'+(avo==='SI'?'row-tot-avo':'row-tot-no')+'"><td>Total '+label.split(' ')[1]+'</td>';
+    let totFila = 0;
+    SALAS.forEach(s => { const v=totSalaGrupo[s]||0; h+='<td>'+(v||'')+'</td>'; totFila+=v; });
+    h += '<td>'+totFila+'</td></tr>';
+  });
+
+  // Total general
+  const totSalaGen = {};
+  let totGen = 0;
+  SALAS.forEach(s => {
+    ['SI','NO'].forEach(avo => {
+      anios.forEach(anio => {
+        const v = bySalaAvoAnio[avo]?.[anio]?.[s]||0;
+        totSalaGen[s]=(totSalaGen[s]||0)+v;
+        totGen+=v;
+      });
+    });
+  });
+  h += '<tr class="row-tot"><td>Suma total</td>';
+  SALAS.forEach(s => h+='<td>'+(totSalaGen[s]||'')+'</td>');
+  h += '<td>'+totGen+'</td></tr>';
+  h += '</tbody></table></div>';
+
+  // Nota sobre resueltas
+  h += '<p class="nota">La tabla muestra solo causas NO resueltas (ordinarias activas). Resueltas: '+fm(resueltas)+'. Para revisar: '+fm(revisar)+'.</p></div>';
+
+  // Gráfico
+  h += '<div class="two">';
+  h += '<div class="card"><div class="ct">Avocadas vs Sin avocar por sala</div><div class="cw"><canvas id="ch1"></canvas></div></div>';
+  h += '<div class="card"><div class="ct">Distribución por año de elevación</div><div class="cw"><canvas id="ch2"></canvas></div></div></div>';
+
+  document.getElementById('foto-c').innerHTML = h;
+
+  setTimeout(() => {
+    ['ch1','ch2'].forEach(id=>{if(CH[id])CH[id].destroy()});
+    // Gráfico barras apiladas: avocadas vs sin avocar por sala
+    const avoData = SALAS.map(s => Object.values(bySalaAvoAnio['SI']||{}).reduce((a,b)=>a+(b[s]||0),0));
+    const noAvoData = SALAS.map(s => Object.values(bySalaAvoAnio['NO']||{}).reduce((a,b)=>a+(b[s]||0),0));
+    CH.ch1 = new Chart(document.getElementById('ch1'), {type:'bar',
+      data:{labels:SALAS.map(s=>s.replace('SALA ','')),datasets:[
+        {label:'Avocadas',data:avoData,backgroundColor:'#6B3FA0',borderRadius:3},
+        {label:'Sin avocar',data:noAvoData,backgroundColor:'#B07A00',borderRadius:3}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},
+        scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,beginAtZero:true}}}
+    });
+
+    // Gráfico por año
+    const anioData = {};
+    anios.filter(a=>a!=='revisar en sac').forEach(a => {
+      anioData[a] = SALAS.reduce((sum,s)=>{
+        return sum+(bySalaAvoAnio['SI']?.[a]?.[s]||0)+(bySalaAvoAnio['NO']?.[a]?.[s]||0);
+      },0);
+    });
+    const anioLabels = Object.keys(anioData);
+    const anioVals = Object.values(anioData);
+    const colors = anioLabels.map((_,i)=>`hsl(${220+i*15},60%,${45+i*2}%)`);
+    CH.ch2 = new Chart(document.getElementById('ch2'), {type:'bar',
+      data:{labels:anioLabels,datasets:[{data:anioVals,backgroundColor:colors,borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{x:{ticks:{font:{size:9}}},y:{beginAtZero:true}}}
+    });
+  },120);
+}
+
+// ===== DETALLE POR SALA =====
+function buildDetalle() {
+  const deps = [...new Set(_foto.map(r=>r.sala))].sort();
+  let h = '<div class="fbar" id="det-fbar">';
+  h += '<span class="fl">Sala:</span>';
+  SALAS.forEach(s => h += '<span class="fchip fc-s" data-t="sala" data-v="'+s+'" onclick="tFDet(this)">'+s.replace('SALA ','S')+'</span>');
+  h += '<div class="fsep"></div>';
+  h += '<span class="fl">Avocam.:</span>';
+  h += '<span class="fchip fc-a" data-t="avo" data-v="SI" onclick="tFDet(this)">SI</span>';
+  h += '<span class="fchip fc-n" data-t="avo" data-v="NO" onclick="tFDet(this)">NO</span>';
+  h += '<span class="fchip fc-n" data-t="avo" data-v="no aplica" onclick="tFDet(this)">N/A</span>';
+  h += '<div class="fsep"></div>';
+  h += '<span class="fl">Resuelto:</span>';
+  h += '<span class="fchip fc-s" data-t="res" data-v="SI" onclick="tFDet(this)">SI</span>';
+  h += '<span class="fchip fc-n" data-t="res" data-v="NO" onclick="tFDet(this)">NO</span>';
+  h += '<button class="fclr" onclick="clrFDet()">✕ Limpiar</button>';
+  h += '</div>';
+  h += '<div style="font-size:11px;color:var(--tx3);font-family:var(--mn);margin-bottom:.6rem" id="det-count"></div>';
+  h += '<div style="overflow-x:auto;max-height:420px;overflow-y:auto" id="det-table-wrap">';
+  h += '<table><thead><tr>';
+  h += '<th style="text-align:left">Clave</th><th style="text-align:left">Sala</th><th style="text-align:left">Tipo juicio</th>';
+  h += '<th>Resuelto</th><th>Tipo resolución</th><th>Fecha res.</th>';
+  h += '<th>Avocam.</th><th>Año elev.</th><th>Mes elev.</th>';
+  h += '<th style="text-align:left">Carátula</th><th>Últ. AVC</th>';
+  h += '</tr></thead><tbody id="det-body"></tbody></table></div>';
+  document.getElementById('detalle-c').innerHTML = h;
+  renderDetalle();
+}
+
+let FA_DET = {sala:[], avo:[], res:[]};
+function tFDet(el) {
+  const t=el.getAttribute('data-t'), v=el.getAttribute('data-v');
+  const arr=FA_DET[t];
+  const idx=arr.indexOf(v);
+  if(idx>=0)arr.splice(idx,1); else arr.push(v);
+  el.classList.toggle('active');
+  renderDetalle();
+}
+function clrFDet() {
+  FA_DET={sala:[],avo:[],res:[]};
+  document.querySelectorAll('#det-fbar .fchip').forEach(c=>c.classList.remove('active'));
+  renderDetalle();
+}
+function renderDetalle() {
+  const rows = _foto.filter(r => {
+    if(FA_DET.sala.length && !FA_DET.sala.includes(r.sala)) return false;
+    if(FA_DET.avo.length && !FA_DET.avo.includes(r.colF)) return false;
+    if(FA_DET.res.length && !FA_DET.res.includes(r.colC)) return false;
+    return true;
+  });
+  const body = document.getElementById('det-body');
+  const count = document.getElementById('det-count');
+  if(!body) return;
+  const sl = rows.slice(0,300);
+  body.innerHTML = sl.map(r=>{
+    const cRes = r.colC==='SI'?'c-res':r.colC==='NO'?'c-sinr':'c-na';
+    const cAvo = r.colF==='SI'?'c-avo':r.colF==='NO'?'c-sinr':'c-na';
+    return '<tr>'+
+      '<td style="font-family:var(--mn);text-align:left">'+r.clave+'</td>'+
+      '<td style="text-align:left">'+r.sala+'</td>'+
+      '<td style="text-align:left"><span class="tag">'+r.tipoJuicio.substring(0,35)+'</span></td>'+
+      '<td><span class="chip '+cRes+'">'+r.colC+'</span></td>'+
+      '<td><span class="tag">'+r.colD.substring(0,30)+'</span></td>'+
+      '<td>'+r.colE+'</td>'+
+      '<td><span class="chip '+cAvo+'">'+r.colF+'</span></td>'+
+      '<td>'+r.colG+'</td>'+
+      '<td>'+r.colH+'</td>'+
+      '<td style="text-align:left;font-size:10px">'+r.colJ.substring(0,40)+'</td>'+
+      '<td>'+r.colP+'</td>'+
+      '</tr>';
+  }).join('');
+  if(count) count.textContent = sl.length+' de '+rows.length+' causas'+(rows.length>300?' — la exportación incluye todas':'');
+}
+
+// ===== PENDIENTES SALA =====
+function buildPendView() {
+  if (!PEND_FILES.length) {
+    document.getElementById('pend-c').innerHTML = '<div class="empty">No se cargaron archivos de pendientes.</div>';
+    return;
+  }
+  // Construir índice del stock para filtrar paralizadas
+  const stockKeys = new Set(_foto.map(r => r.clave));
+  // Solo contar pendientes que matcheen con el stock activo
+  const allPend = PEND_FILES.flatMap(f => f.rows).filter(r => {
+    const k = r.nroExp + '-' + r.sala;
+    return stockKeys.has(k);
+  });
+  const totalRaw = PEND_FILES.flatMap(f => f.rows).length;
+  const paralizadas = totalRaw - allPend.length;
+
+  const bySala = {};
+  allPend.forEach(r => {
+    if(!bySala[r.sala]) bySala[r.sala]={};
+    if(!bySala[r.sala][r.sec]) bySala[r.sala][r.sec]=[];
+    bySala[r.sala][r.sec].push(r);
+  });
+
+  let h = '<div class="al al-ok" style="font-size:11px;margin-bottom:.7rem">';
+  h += '<strong>'+fm(allPend.length)+'</strong> pendientes activas (matchean con el stock). ';
+  h += '<span style="color:var(--tx3)">'+fm(paralizadas)+' paralizadas excluidas.</span></div>';
+
+  h += '<div class="mg">';
+  h += '<div class="m"><div class="ml">Activas en stock</div><div class="mv" style="color:var(--ac)">'+fm(allPend.length)+'</div></div>';
+  h += '<div class="m"><div class="ml">Paralizadas</div><div class="mv" style="color:var(--tx3);font-size:16px">'+fm(paralizadas)+'</div><div class="ms">excluidas</div></div>';
+  SALAS.forEach(s => {
+    if(!bySala[s]) return;
+    const tot = Object.values(bySala[s]).reduce((a,b)=>a+b.length,0);
+    h += '<div class="m"><div class="ml">'+s.replace('SALA ','S')+'</div><div class="mv" style="font-size:17px">'+fm(tot)+'</div></div>';
+  });
+  h += '</div>';
+
+  SALAS.forEach(s => {
+    if(!bySala[s]) return;
+    h += '<div class="card"><div class="ct">'+s+'</div>';
+    h += '<table><thead><tr><th style="text-align:left">Secretaría</th><th>Activas</th><th style="text-align:left">Última operación más frecuente</th></tr></thead><tbody>';
+    Object.entries(bySala[s]).forEach(([sec,rows]) => {
+      const opCount = {};
+      rows.forEach(r=>{opCount[r.tipoOp]=(opCount[r.tipoOp]||0)+1;});
+      const topOp = Object.entries(opCount).sort((a,b)=>b[1]-a[1])[0];
+      h += '<tr><td>'+sec+'</td><td>'+fm(rows.length)+'</td><td><span class="tag">'+(topOp?topOp[0]:'—')+'</span>'+(topOp?' ('+topOp[1]+')':'')+'</td></tr>';
+    });
+    h += '</tbody></table></div>';
+  });
+  document.getElementById('pend-c').innerHTML = h;
+}
+
+// ===== PARA REVISAR =====
+function renderRevisar() {
+  if (!_revisar.length) {
+    document.getElementById('rev-c').innerHTML = '<div class="empty" style="color:var(--res)">✓ Sin casos para revisar manualmente.</div>';
+    return;
+  }
+  let h = '<div class="al al-w">'+fm(_revisar.length)+' causas requieren revisión manual. No se pudo determinar el año de elevación a juicio o faltan datos de avocamiento.</div>';
+  h += '<div style="overflow-x:auto"><table><thead><tr>';
+  h += '<th style="text-align:left">Clave</th><th style="text-align:left">Sala</th>';
+  h += '<th style="text-align:left">Tipo juicio</th><th>Resuelto</th><th>Avocam.</th>';
+  h += '<th>Año elev.</th><th style="text-align:left">Carátula</th>';
+  h += '</tr></thead><tbody>';
+  _revisar.slice(0,500).forEach(r => {
+    h += '<tr>';
+    h += '<td style="font-family:var(--mn);text-align:left">'+r.clave+'</td>';
+    h += '<td style="text-align:left">'+r.sala+'</td>';
+    h += '<td style="text-align:left"><span class="tag">'+r.tipoJuicio.substring(0,35)+'</span></td>';
+    h += '<td><span class="chip '+(r.colC==='SI'?'c-res':r.colC==='NO'?'c-sinr':'c-na')+'">'+r.colC+'</span></td>';
+    h += '<td><span class="chip '+(r.colF==='SI'?'c-avo':r.colF==='NO'?'c-sinr':'c-na')+'">'+r.colF+'</span></td>';
+    h += '<td>'+r.colG+'</td>';
+    h += '<td style="text-align:left;font-size:10px">'+r.colJ.substring(0,40)+'</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  if(_revisar.length>500) h+='<p class="nota">Mostrando 500 de '+_revisar.length+'. La exportación incluye todas.</p>';
+  document.getElementById('rev-c').innerHTML = h;
+}
+
+// ===== EXPORTAR =====
+function pobExp() {
+  const sel=document.getElementById('exp-sala'); if(!sel)return;
+  sel.innerHTML='<option value="">Todas</option>';
+  SALAS.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+  updExpPrev();
+}
+
+function getExpRows() {
+  const sf=document.getElementById('exp-sala')?.value||'';
+  const af=document.getElementById('exp-avo')?.value||'';
+  const rf=document.getElementById('exp-res')?.value||'';
+  return _foto.filter(r=>{
+    if(sf&&r.sala!==sf)return false;
+    if(af&&r.colF!==af)return false;
+    if(rf&&r.colC!==rf)return false;
+    return true;
+  }).map(r=>({
+    'Expediente - Sala':r.clave,
+    'idExpediente':r.idE,
+    'Sala':r.sala,
+    'Secretaría':r.sec||'',
+    'Ordinario Resuelto (si/no)':r.colC,
+    'Tipo de resolución':r.colD,
+    'Fecha de resolución':r.colE,
+    'Avocamiento (si/no) actual':r.colF,
+    'Año de elevación':r.colG,
+    'Mes de elevación':r.colH,
+    'Observación':r.colI,
+    'Carátula':r.colJ,
+    'TIPO PROCESO':r.tipoProceso,
+    'Ordinario Resuelto (si/no) previo':r.faTipoPrev,
+    'Avocamiento (si/no) previo':r.faAvoPrev,
+    'Último avocam.':r.colN,
+    'Último decreto fijación AVC':r.colO,
+    'Última acta AVC':r.colP
+  }));
+}
+
+function updExpPrev() {
+  const rows=getExpRows();
+  const p=document.getElementById('exp-prev');
+  if(p) p.textContent=rows.length?fm(rows.length)+' causas a exportar':'Sin datos';
+}
+
+function PRV() {
+  const rows=getExpRows().slice(0,30);
+  if(!rows.length){document.getElementById('exp-wrap').innerHTML='<div class="empty">Sin datos.</div>';return;}
+  const cols=Object.keys(rows[0]);
+  let h='<div class="card"><div class="ct">Previsualización — '+rows.length+' filas</div>';
+  h+='<div style="overflow-x:auto;max-height:240px"><table><thead><tr>'+cols.map(c=>'<th style="text-align:left">'+c+'</th>').join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{h+='<tr>'+cols.map(c=>'<td style="text-align:left">'+(r[c]||'')+'</td>').join('')+'</tr>';});
+  h+='</tbody></table></div></div>';
+  document.getElementById('exp-wrap').innerHTML=h; updExpPrev();
+}
+
+function EXP() {
+  const sf=document.getElementById('exp-sala')?.value||'';
+  const af=document.getElementById('exp-avo')?.value||'';
+  const rf=document.getElementById('exp-res')?.value||'';
+  const fecha=document.getElementById('exp-fecha')?.value||new Date().toLocaleDateString('es-AR');
+  const rows=getExpRows();
+  if(!rows.length){alert('Sin datos.');return;}
+  const wb=XLSX.utils.book_new();
+  const scope=sf||'Todas las salas';
+  const titulo='Foto Cámara del Trabajo al '+fecha+' — '+scope+(af?' — Avocam.:'+af:'')+(rf?' — Resuelto:'+rf:'');
+  const ws=XLSX.utils.aoa_to_sheet([[titulo],Object.keys(rows[0]),...rows.map(r=>Object.values(r))]);
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:Object.keys(rows[0]).length-1}}];
+  if(ws['A1'])ws['A1'].s={font:{bold:true,sz:12,color:{rgb:'CC0000'}}};
+  ws['!autofilter']={ref:'A2:'+XLSX.utils.encode_col(Object.keys(rows[0]).length-1)+(rows.length+1)};
+  ws['!cols']=Object.keys(rows[0]).map((_,i)=>({wch:[22,10,10,38,13,12,8,8,30,45,12,10,10,13,13,13][i]||12}));
+  XLSX.utils.book_append_sheet(wb,ws,'Foto');
+
+  // Hoja resumen por sala
+  const rd=[['Resumen por sala — '+scope+' — al '+fecha],[''],
+    ['Sala','Total','Resueltas','Avocadas','Sin avocar','Para revisar']];
+  SALAS.forEach(s=>{
+    const sub=_foto.filter(r=>r.sala===s);
+    const res=sub.filter(r=>r.colC==='SI').length;
+    const avo=sub.filter(r=>r.colF==='SI').length;
+    const no=sub.filter(r=>r.colF==='NO').length;
+    const rev=sub.filter(r=>r.paraRevisar).length;
+    if(sub.length) rd.push([s,sub.length,res,avo,no,rev]);
+  });
+  const ws2=XLSX.utils.aoa_to_sheet(rd);
+  ws2['!cols']=[{wch:12},{wch:8},{wch:10},{wch:10},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumen');
+
+  // Hoja para revisar
+  if(_revisar.length){
+    const rrd=[['Para revisar manualmente — '+fecha],[''],
+      ['Expediente - Sala','Sala','Tipo juicio','Resuelto','Avocam.','Año elev.','Carátula']];
+    _revisar.forEach(r=>rrd.push([r.clave,r.sala,r.tipoJuicio,r.colC,r.colF,r.colG,r.colJ]));
+    const ws3=XLSX.utils.aoa_to_sheet(rrd);
+    ws3['!cols']=[{wch:22},{wch:10},{wch:45},{wch:10},{wch:10},{wch:10},{wch:45}];
+    XLSX.utils.book_append_sheet(wb,ws3,'Para revisar');
+  }
+
+  XLSX.writeFile(wb,'foto_camara_'+fecha.replace(/\//g,'-')+'.xlsx');
+}
+
+// ===== EXPORTAR FOTO ANTERIOR =====
+function EXP_FOTO_ANT() {
+  if (!_foto.length) { alert('Procesá los archivos primero.'); return; }
+  const fecha = document.getElementById('exp-fecha')?.value || new Date().toLocaleDateString('es-AR');
+  const wb = XLSX.utils.book_new();
+  const titulo = 'Foto anterior — '+fecha+' — para uso el mes siguiente';
+  const cols = [
+    'Expediente - Sala','idExpediente','Sala','Secretaría','Ordinario Resuelto (si/no)','Tipo de resolución',
+    'Fecha de resolución','Avocamiento (si/no) actual','Año de elevación','Mes de elevación',
+    'Observación','Carátula','TIPO PROCESO','Ordinario Resuelto (si/no) previo',
+    'Avocamiento (si/no) previo','Último avocam.','Último decreto fijación AVC','Última acta AVC'
+  ];
+  const rows = _foto.map(r=>[
+    r.clave, r.idE, r.sala, r.sec||'', r.colC, r.colD, r.colE, r.colF,
+    r.colG, r.colH, r.colI, r.colJ, r.tipoProceso,
+    r.colC, r.colF, r.colN, r.colO, r.colP
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([[titulo], cols, ...rows]);
+  ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:cols.length-1}}];
+  if(ws['A1'])ws['A1'].s={font:{bold:true,sz:11,color:{rgb:'1C3A6B'}}};
+  ws['!autofilter'] = {ref:'A2:'+XLSX.utils.encode_col(cols.length-1)+(rows.length+1)};
+  ws['!cols'] = cols.map((_,i)=>({wch:[22,10,10,38,13,12,8,8,30,45,12,10,10,13,13,13][i]||12}));
+  XLSX.utils.book_append_sheet(wb, ws, 'Foto anterior');
+  XLSX.writeFile(wb, 'foto_anterior_'+fecha.replace(/\//g,'-')+'.xlsx');
+}
+
+// ===== TOGGLE AÑOS EN TABLA =====
+var _anosVisible = false;
+function toggleAnios() {
+  _anosVisible = !_anosVisible;
+  const rows = document.querySelectorAll('.anio-row');
+  rows.forEach(r => r.style.display = _anosVisible ? '' : 'none');
+  const btn = document.getElementById('btn-anios');
+  if(btn) btn.textContent = _anosVisible ? '▲ Ocultar años' : '▼ Mostrar años';
+}
+
+// ===== IMPRIMIR / PDF =====
+function imprimirFoto() {
+  const fecha = document.getElementById('exp-fecha')?.value || new Date().toLocaleDateString('es-AR');
+  const pt = document.getElementById('print-title');
+  if(pt) pt.textContent = 'Foto Cámara del Trabajo — ' + fecha;
+  // Asegurar que las filas de años respetan el estado actual antes de imprimir
+  const rows = document.querySelectorAll('.anio-row');
+  rows.forEach(r => r.style.display = _anosVisible ? '' : 'none');
+  window.print();
+}
+
+// ===== FILTROS TABLA DINAMICA =====
+var _anosVisible = false;
+var _aniosFiltrados = new Set();
+
+function toggleAnios() {
+  _anosVisible = !_anosVisible;
+  aplicarVisibilidadAnios();
+  var btn = document.getElementById('btn-anios');
+  if(btn) btn.textContent = _anosVisible ? 'Ocultar anos' : 'Mostrar anos';
+}
+
+function aplicarVisibilidadAnios() {
+  document.querySelectorAll('.anio-row').forEach(function(r) {
+    var anio = r.getAttribute('data-anio')||'';
+    var filtOk = _aniosFiltrados.size===0 || _aniosFiltrados.has(anio);
+    r.style.display = (_anosVisible && filtOk) ? '' : 'none';
+  });
+}
+
+function filtrarAnio(el) {
+  var anio = el.getAttribute('data-anio');
+  if (anio === '__todos__') {
+    _aniosFiltrados.clear();
+    document.querySelectorAll('[data-anio]').forEach(function(c){c.classList.remove('active');});
+    el.classList.add('active');
+  } else {
+    document.querySelector('[data-anio="__todos__"]') && document.querySelector('[data-anio="__todos__"]').classList.remove('active');
+    if (_aniosFiltrados.has(anio)) {
+      _aniosFiltrados.delete(anio);
+      el.classList.remove('active');
+    } else {
+      _aniosFiltrados.add(anio);
+      el.classList.add('active');
+    }
+    if (_aniosFiltrados.size===0) {
+      var t = document.querySelector('[data-anio="__todos__"]');
+      if(t) t.classList.add('active');
+    }
+  }
+  if (_aniosFiltrados.size > 0 && !_anosVisible) {
+    _anosVisible = true;
+    var btn = document.getElementById('btn-anios');
+    if(btn) btn.textContent = 'Ocultar anos';
+  }
+  aplicarVisibilidadAnios();
+}
+
+function resetFiltroAnio() {
+  _aniosFiltrados.clear();
+  document.querySelectorAll('[data-anio]').forEach(function(c){c.classList.remove('active');});
+  var t = document.querySelector('[data-anio="__todos__"]');
+  if(t) t.classList.add('active');
+  aplicarVisibilidadAnios();
+}
+
+// ===== IMPRIMIR / PDF =====
+
+
+// ===== NAV =====
+function GT(id,el){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+document.getElementById('hdr-f').textContent = new Date().toLocaleDateString('es-AR');
+</script>
+</body>
+</html>
