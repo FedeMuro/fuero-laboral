@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fuero Laboral Cordoba - Conciliacion</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#F5F4F0;--sur:#FFF;--bdr:#E2E0D8;--bdr2:#CBC9BF;
+  --tx:#1A1916;--tx2:#6B6960;--tx3:#9B9A94;
+  --ac:#1C4E3A;--ac2:#2D7A5C;--acl:#E8F4EE;
+  --wa:#8B4A0F;--wal:#FEF3E7;
+  --ord:#1A56B0;--ordl:#E8F0FC;
+  --pda:#1A7A3C;--pdal:#E6F4EC;
+  --esp:#6B3FA0;--espl:#F0EBF9;
+  --ot:#B07A00;--otl:#FDF5DC;
+  --res:#1A7A3C;--resl:#E6F4EC;
+  --sinr:#C0392B;--sinrl:#FDECEA;
+  --inadm:#B07A00;--inadml:#FDF5DC;
+  --gray:#6B6960;--grayl:#F0EEE8;
+  --mn:'IBM Plex Mono',monospace;--sn:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sn);background:var(--bg);color:var(--tx);font-size:13px;min-height:100vh}
+.hdr{background:var(--ac);color:#fff;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.hdr-t{font-size:14px;font-weight:600}.hdr-s{font-size:10px;opacity:.6;font-family:var(--mn)}
+.hdr-b{font-family:var(--mn);font-size:10px;background:rgba(255,255,255,.15);padding:3px 9px;border-radius:4px}
+.lay{display:flex;min-height:calc(100vh - 48px)}
+.sid{width:185px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bdr);padding:.75rem 0}
+.main{flex:1;padding:1.1rem;overflow-x:hidden}
+.ns{font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1rem .2rem}
+.ni{display:flex;align-items:center;gap:7px;padding:6px 1rem;font-size:12px;color:var(--tx2);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.ni:hover{background:var(--bg)}.ni.active{color:var(--ac);border-left-color:var(--ac);background:var(--acl);font-weight:500}
+.ni-ic{font-size:13px;width:16px;text-align:center}
+.sec{display:none}.sec.active{display:block}
+.pt{font-size:15px;font-weight:600;margin-bottom:.2rem}
+.ps{font-size:10px;color:var(--tx3);font-family:var(--mn);margin-bottom:1rem}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:.9rem 1rem;margin-bottom:.8rem}
+.ct{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.7rem}
+/* TABLA DINAMICA */
+.pivot{width:100%;border-collapse:collapse;font-size:12px}
+.pivot th{padding:7px 12px;font-weight:600;font-size:11px;border:1px solid var(--bdr);white-space:nowrap}
+.pivot td{padding:6px 12px;border:1px solid var(--bdr);text-align:right;font-family:var(--mn)}
+.pivot td:first-child{text-align:left;font-family:var(--sn);font-weight:500}
+.pivot tr:hover td{background:var(--bg)}
+.pivot .th-proc{background:var(--ac);color:#fff;text-align:left}
+.pivot .th-res{background:var(--resl);color:var(--res);text-align:center}
+.pivot .th-sinr{background:var(--sinrl);color:var(--sinr);text-align:center}
+.pivot .th-inadm{background:var(--inadml);color:var(--inadm);text-align:center}
+.pivot .th-tot{background:var(--acl);color:var(--ac);text-align:center;font-weight:700}
+.pivot .tr-tot td{font-weight:700;background:var(--acl)}
+.pivot .tr-tot td:first-child{color:var(--ac)}
+.pivot .td-res{color:var(--res);font-weight:500}
+.pivot .td-sinr{color:var(--sinr);font-weight:500}
+.pivot .td-inadm{color:var(--inadm);font-weight:500}
+.pivot .td-tot{font-weight:700;color:var(--ac)}
+/* BARRAS PROGRESO */
+.barra-wrap{display:flex;align-items:center;gap:8px}
+.barra{flex:1;height:6px;background:var(--bdr);border-radius:3px;overflow:hidden;min-width:40px}
+.barra-fill{height:100%;border-radius:3px;transition:width .4s}
+/* CHIPS */
+.fbar{display:flex;flex-wrap:wrap;gap:6px;padding:.7rem .9rem;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;align-items:center;margin-bottom:1rem}
+.fl{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-right:2px;white-space:nowrap}
+.fsep{width:1px;height:20px;background:var(--bdr);margin:0 4px}
+.fchip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:14px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:all .15s;user-select:none;white-space:nowrap}
+.fchip:hover{opacity:.85}
+.fchip.active{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor}
+.fc-ord{background:var(--ordl);color:var(--ord)}
+.fc-pda{background:var(--pdal);color:var(--pda)}
+.fc-esp{background:var(--espl);color:var(--esp)}
+.fc-ot{background:var(--otl);color:var(--ot)}
+.fc-res{background:var(--resl);color:var(--res)}
+.fc-sinr{background:var(--sinrl);color:var(--sinr)}
+.fc-inadm{background:var(--inadml);color:var(--inadm)}
+.fc-loc{background:var(--grayl);color:var(--tx2)}
+.fc-loc.active{background:var(--acl);color:var(--ac);border-color:var(--ac)}
+.fclr{font-size:10px;color:var(--tx3);cursor:pointer;padding:3px 7px;border-radius:4px;border:1px solid var(--bdr);background:transparent;margin-left:auto}
+/* STATS ROW */
+.stats-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.stat-box{flex:1;min-width:100px;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:.7rem .9rem;position:relative;overflow:hidden}
+.stat-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.stat-box.sb-tot::before{background:var(--ac)}
+.stat-box.sb-res::before{background:var(--res)}
+.stat-box.sb-sinr::before{background:var(--sinr)}
+.stat-box.sb-inadm::before{background:var(--inadm)}
+.stat-box.sb-sinop::before{background:var(--gray)}
+.stat-label{font-size:10px;color:var(--tx3);margin-bottom:3px}
+.stat-val{font-size:22px;font-weight:700;font-family:var(--mn);line-height:1}
+.stat-pct{font-size:10px;color:var(--tx3);margin-top:2px;font-family:var(--mn)}
+/* GRAFICOS */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
+@media(max-width:750px){.two,.three{grid-template-columns:1fr}}
+.cw{position:relative;width:100%;height:200px}
+.cwl{position:relative;width:100%;height:280px}
+/* DROP ZONES */
+.dz{border:1.5px dashed var(--bdr2);border-radius:8px;padding:.75rem;text-align:center;cursor:pointer;margin-bottom:.5rem;transition:all .2s}
+.dz:hover,.dz.ov{border-color:var(--ac);background:var(--acl)}
+.dz input{display:none}
+.dzi{font-size:16px;margin-bottom:2px}.dzl{font-size:12px;font-weight:500;margin-bottom:1px}
+.dzs{font-size:10px;color:var(--tx3)}
+.dzt{font-size:9px;display:inline-block;padding:1px 6px;border-radius:3px;margin-top:2px;font-family:var(--mn)}
+.dzt-c{background:var(--ordl);color:var(--ord)}.dzt-p{background:var(--inadml);color:var(--inadm)}.dzt-o{background:var(--espl);color:var(--esp)}
+.st{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:4px;margin-top:3px;font-family:var(--mn)}
+.stw{background:var(--grayl);color:var(--tx3)}.stl{background:var(--ordl);color:var(--ord)}.sto{background:var(--resl);color:var(--res)}.ste{background:var(--wal);color:var(--wa)}
+.pb{width:100%;height:3px;background:var(--bdr);border-radius:2px;margin-top:4px;overflow:hidden;display:none}
+.pf{height:100%;background:var(--ac);border-radius:2px}
+.al{border-left:3px solid var(--ac);background:var(--acl);padding:.55rem .85rem;border-radius:0 6px 6px 0;font-size:11px;margin-bottom:.8rem;line-height:1.6}
+.al-w{border-left-color:var(--wa);background:var(--wal)}
+.chip{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;font-family:var(--mn)}
+.cr{background:var(--resl);color:var(--res)}.cs{background:var(--sinrl);color:var(--sinr)}.ci{background:var(--inadml);color:var(--inadm)}.cg{background:var(--grayl);color:var(--gray)}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600}
+.bo{background:var(--ordl);color:var(--ord)}.bp{background:var(--pdal);color:var(--pda)}.be{background:var(--espl);color:var(--esp)}.bt{background:var(--otl);color:var(--ot)}
+select,input[type=text]{font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--bdr2);background:var(--sur);color:var(--tx);cursor:pointer;font-family:var(--sn)}
+.btn{background:transparent;border:1px solid var(--bdr2);border-radius:6px;padding:5px 11px;font-size:11px;cursor:pointer;color:var(--tx2);display:inline-flex;align-items:center;gap:4px;font-family:var(--sn);transition:all .15s}
+.btn:hover{background:var(--bg)}.btn-p{background:var(--ac);color:#fff;border-color:var(--ac)}.btn-p:hover{background:var(--ac2)}
+.btn-e{background:#1C3E2E;color:#fff;border-color:#1C3E2E}
+.rg{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.7rem}
+.nota{font-size:10px;color:var(--tx3);margin-top:5px;font-style:italic;font-family:var(--mn)}
+.empty{text-align:center;padding:2.5rem;color:var(--tx3);font-size:12px}
+table.gen{width:100%;border-collapse:collapse;font-size:11px}
+table.gen th{text-align:left;padding:4px 7px;font-weight:600;font-size:10px;color:var(--tx3);border-bottom:1px solid var(--bdr);background:var(--bg)}
+table.gen td{padding:4px 7px;border-bottom:1px solid var(--bdr)}
+table.gen tr:last-child td{border-bottom:none}
+table.gen tr:hover td{background:var(--bg)}
+table.gen .trt td{font-weight:700;background:var(--acl)}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div><div class="hdr-t">Fuero Laboral Cordoba - Conciliacion</div><div class="hdr-s">Sistema de analisis y reporting judicial</div></div>
+  <div class="hdr-b" id="hdr-f">-</div>
+</div>
+<div class="lay">
+<nav class="sid">
+  <div class="ns">Datos</div>
+  <div class="ni active" onclick="GT('arch',this)"><span class="ni-ic">📂</span>Archivos</div>
+  <div class="ns">Analisis</div>
+  <div class="ni" onclick="GT('dash',this)"><span class="ni-ic">📊</span>Dashboard</div>
+  <div class="ni" onclick="GT('detalle',this)"><span class="ni-ic">🔍</span>Detalle</div>
+  <div class="ns">Exportar</div>
+  <div class="ni" onclick="GT('exp',this)"><span class="ni-ic">⬇</span>Exportar listado</div>
+</nav>
+<main class="main">
+
+<!-- ARCHIVOS -->
+<div id="arch" class="sec active">
+  <div class="pt">Carga de archivos</div>
+  <div class="ps">Mapa de equivalencias embebido - datos frescos cada vez</div>
+  <div class="card">
+    <div class="ct">Obligatorio - siempre</div>
+    <div class="dz" onclick="document.getElementById('f-stock').click()" ondrop="DR(event,'stock')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-stock" accept=".xlsx" onchange="LF(this,'stock')">
+      <div class="dzi">📊</div><div class="dzl">Stock activo (Power BI)</div>
+      <div class="dzs">Localidad, Dependencia y tipo de proceso vienen en el archivo</div>
+      <div class="dzt dzt-c">subir cada vez</div>
+      <div id="st-stock" class="st stw">⏳ Pendiente</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Resoluciones - Capital + SF / RC / VMA</div>
+    <div class="dz" onclick="document.getElementById('f-res').click()" ondrop="DR(event,'res')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-res" accept=".csv,.xlsx" onchange="LF(this,'res')">
+      <div class="dzi">⚖️</div><div class="dzl">Resoluciones (CSV o Excel)</div>
+      <div class="dzs">JuicioConciliacionOtrosModos - sep ; latin-1 o guardado como xlsx</div>
+      <div class="dzt dzt-p">actualizar periodicamente</div>
+      <div id="st-res" class="st stw">⏳ Pendiente</div>
+      <div class="pb" id="pb-res"><div class="pf" id="pf-res" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Interior - operaciones resolucion</div>
+    <div class="al" style="font-size:11px;margin-bottom:.6rem">Para localidades sin CSV. Filtra los tipos de resolucion en el portal antes de subir.</div>
+    <div class="dz" onclick="document.getElementById('f-resint').click()" ondrop="DR(event,'resint')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-resint" accept=".xlsx,.csv" onchange="LF(this,'resint')">
+      <div class="dzi">⚖️</div><div class="dzl">Operaciones resolucion interior</div>
+      <div class="dzs">Reporte de operaciones filtrado por tipo resolucion</div>
+      <div class="dzt dzt-p">segun consulta</div>
+      <div id="st-resint" class="st stw">⏳ Pendiente</div>
+      <div class="pb" id="pb-resint"><div class="pf" id="pf-resint" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Operaciones generales - ultimo año</div>
+    <div class="al" style="font-size:11px;margin-bottom:.6rem">La app toma la operacion mas reciente por expediente (año + mes).</div>
+    <div class="dz" onclick="document.getElementById('f-ops').click()" ondrop="DR(event,'ops')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-ops" accept=".xlsx,.csv" onchange="LF(this,'ops')">
+      <div class="dzi">📋</div><div class="dzl">Operaciones generales ultimo año</div>
+      <div class="dzs">Reporte operaciones - todas las localidades - ultimo año</div>
+      <div class="dzt dzt-o">segun consulta</div>
+      <div id="st-ops" class="st stw">⏳ Pendiente</div>
+      <div class="pb" id="pb-ops"><div class="pf" id="pf-ops" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Pendientes - solo Capital (opcional)</div>
+    <div class="dz" onclick="document.getElementById('f-pend').click()" ondrop="DR(event,'pend')" ondragover="OV(event)" ondragleave="OL(event)">
+      <input type="file" id="f-pend" accept=".xlsx" onchange="LF(this,'pend')">
+      <div class="dzi">📋</div><div class="dzl">Pendientes (portal)</div>
+      <div class="dzs">Aporta caratula e instructor para Capital</div>
+      <div class="dzt dzt-c">cuando sea Capital</div>
+      <div id="st-pend" class="st stw">⏳ Pendiente</div>
+    </div>
+  </div>
+  <div class="rg" style="margin-top:.5rem">
+    <button class="btn btn-p" onclick="PROC()">▶ Procesar todo</button>
+    <div id="mp" style="font-size:11px;color:var(--tx3);font-family:var(--mn)"></div>
+  </div>
+  <div class="card" style="margin-top:.8rem">
+    <div class="ct">Logica de estados</div>
+    <table class="gen"><thead><tr><th>Fuente</th><th>Estado</th></tr></thead><tbody>
+      <tr><td>CSV/xlsx resoluciones o interior - tipo resolucion conocido</td><td><span class="chip cr">Resuelto</span></td></tr>
+      <tr><td>CSV/xlsx resoluciones - Inadmisibilidad de la demanda</td><td><span class="chip ci">Inadmisibilidad/revisar</span></td></tr>
+      <tr><td>Sin registro en ningun archivo de resoluciones</td><td><span class="chip cs">Sin resolucion</span></td></tr>
+      <tr><td>Sin operaciones en el periodo (reporte ops vacio)</td><td><span class="chip cg">Sin ops en el periodo</span> en año y mes de ultima op.</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="sec">
+  <div class="pt">Dashboard</div>
+  <div class="ps">Filtros interactivos - la tabla y graficos se actualizan en tiempo real</div>
+  <div id="dash-c"><div class="empty">Carga los archivos y procesa.</div></div>
+</div>
+
+<!-- DETALLE -->
+<div id="detalle" class="sec">
+  <div class="pt">Detalle por dependencia</div>
+  <div class="ps">Listado completo filtrable</div>
+  <div id="detalle-c"><div class="empty">Procesa los archivos primero.</div></div>
+</div>
+
+<!-- EXPORTAR -->
+<div id="exp" class="sec">
+  <div class="pt">Exportar listado</div>
+  <div class="ps">La exportacion siempre incluye todas las causas sin importar los filtros en pantalla</div>
+  <div class="card"><div class="ct">Opciones de exportacion</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div class="rg">
+        <label style="font-size:11px;color:var(--tx3)">Localidad:</label>
+        <select id="exp-loc" onchange="updExpPrev()" style="min-width:130px"><option value="">Todas</option></select>
+        <label style="font-size:11px;color:var(--tx3)">Estado:</label>
+        <select id="exp-est" onchange="updExpPrev()">
+          <option value="">Todos</option><option>Resuelto</option><option>Sin resolucion</option><option>Inadmisibilidad/revisar</option>
+        </select>
+        <label style="font-size:11px;color:var(--tx3)">Proceso:</label>
+        <select id="exp-proc" onchange="updExpPrev()">
+          <option value="">Todos</option><option>Ordinario</option><option>PDA</option><option>Especiales</option><option>Otros</option>
+        </select>
+      </div>
+      <div class="rg">
+        <label style="font-size:11px;color:var(--tx3)">Fecha:</label>
+        <input type="text" id="exp-fecha" placeholder="DD/MM/AAAA" style="width:110px">
+      </div>
+      <div id="exp-prev" style="font-size:11px;color:var(--tx3);font-family:var(--mn)"></div>
+      <div class="rg">
+        <button class="btn btn-e" onclick="EXP()">⬇ Exportar Excel</button>
+        <button class="btn" onclick="PRV()">👁 Previsualizar</button>
+      </div>
+    </div>
+  </div>
+  <div id="exp-wrap"></div>
+</div>
+</main>
+</div>
+
+<script>
+const MP = {"5":"Especiales","6":"Especiales","7":"Especiales","9":"Otros","28":"Especiales","29":"Otros","30":"Especiales","31":"Otros","32":"Otros","33":"Otros","34":"Otros","35":"Otros","36":"Otros","37":"Otros","38":"Otros","39":"Otros","40":"Otros","41":"Otros","42":"Otros","57":"Especiales","58":"Especiales","64":"Otros","67":"Otros","70":"Otros","71":"Otros","74":"Especiales","75":"Ordinario","76":"Especiales","77":"Especiales","78":"Especiales","79":"Especiales","80":"Otros","81":"Ordinario","82":"Ordinario","83":"Ordinario","84":"Otros","85":"Especiales","86":"Especiales","87":"Otros","88":"Otros","89":"Otros","91":"Otros","92":"Otros","93":"Especiales","94":"Otros","95":"Especiales","96":"Especiales","97":"Especiales","98":"Otros","99":"Otros","100":"Otros","101":"Otros","102":"Otros","103":"Otros","104":"Otros","107":"Especiales","108":"Otros","109":"Especiales","110":"Especiales","111":"Especiales","112":"Otros","113":"Otros","114":"Otros","116":"Otros","117":"Ordinario","118":"Otros","119":"Otros","120":"Otros","121":"Especiales","122":"Especiales","123":"Especiales","124":"Especiales","125":"Otros","127":"Especiales","128":"Especiales","129":"Especiales","130":"Otros","131":"Especiales","133":"Especiales","134":"Especiales","135":"Otros","136":"Especiales","137":"Especiales","138":"Especiales","139":"Ordinario","140":"Otros","141":"Otros","143":"Especiales","144":"Especiales","145":"Otros","147":"Otros","149":"Otros","151":"Otros","155":"Especiales","160":"Otros","161":"Ordinario","165":"Otros","171":"Otros","172":"Otros","173":"Otros","174":"Otros","176":"Otros","177":"Otros","189":"Especiales","190":"Otros","191":"Especiales","192":"Otros","193":"Otros","194":"Otros","195":"Otros","197":"Especiales","199":"Otros","201":"Especiales","217":"Otros","220":"Otros","226":"Otros","238":"Otros","240":"Otros","241":"Ordinario","242":"Otros","246":"Otros","272":"Otros","285":"Otros","286":"Especiales","290":"Especiales","304":"Otros","306":"Especiales","307":"Otros","308":"Otros","309":"Otros","310":"Otros","311":"Otros","312":"Otros","313":"Otros","314":"Especiales","315":"Especiales","316":"Especiales","317":"Especiales","318":"Especiales","319":"Ordinario","320":"Otros","321":"Ordinario","322":"Ordinario","323":"Ordinario","324":"Ordinario","325":"Ordinario","326":"Ordinario","327":"Ordinario","328":"Ordinario","329":"Ordinario","330":"Ordinario","331":"Ordinario","332":"Ordinario","333":"Ordinario","334":"Ordinario","335":"Especiales","336":"Especiales","337":"Especiales","338":"Especiales","339":"Especiales","340":"Otros","341":"Especiales","342":"Otros","343":"Ordinario","344":"Ordinario","376":"Especiales","378":"Especiales","389":"Otros","390":"Otros","391":"Otros","392":"Otros","393":"Otros","394":"Otros","395":"Otros","396":"Otros","397":"Otros","403":"Especiales","410":"Otros","411":"Especiales","415":"Otros","417":"Otros","419":"Especiales","420":"Otros","423":"Otros","424":"Otros","425":"Otros","426":"Otros","427":"Otros","428":"Otros","432":"Otros","436":"Otros","437":"Especiales","438":"Otros","439":"Otros","441":"Otros","442":"Otros","443":"Otros","446":"Especiales","447":"Especiales","449":"Especiales","451":"Especiales","458":"Especiales","460":"Especiales","461":"Especiales","462":"Especiales","463":"Especiales","464":"Especiales","465":"Especiales","487":"Ordinario","488":"Ordinario","489":"Ordinario","490":"Ordinario","491":"Ordinario","493":"Ordinario","502":"Especiales","504":"Especiales","519":"Otros","528":"Especiales","533":"Otros","534":"Otros","538":"Especiales","541":"Ordinario","542":"Ordinario","548":"Ordinario","552":"Otros","587":"Otros","591":"Otros","592":"Otros","595":"Otros","598":"Otros","601":"Especiales","602":"Especiales","603":"Especiales","604":"Especiales","607":"Especiales","608":"Especiales","612":"Especiales","613":"Especiales","614":"Otros","615":"Otros","616":"Otros","618":"Otros","619":"Otros","622":"Especiales","625":"Especiales","627":"Especiales","628":"Especiales","629":"Especiales","631":"Otros","634":"Otros","635":"Otros","640":"Otros","641":"Otros","642":"Especiales","643":"Otros","644":"Ordinario","677":"Especiales","678":"Especiales","679":"Especiales","680":"Especiales","681":"Especiales","682":"Especiales","683":"Especiales","685":"Especiales","690":"Otros","694":"Especiales","695":"Otros","698":"Especiales","701":"Especiales","708":"Especiales","709":"Especiales","713":"Otros","716":"Otros","722":"Otros","723":"Otros","724":"Otros","727":"Otros","750":"Otros","752":"Otros","754":"Especiales","755":"Otros","759":"Especiales","760":"Otros","796":"Especiales","797":"Otros","799":"Otros","809":"PDA","810":"Especiales","811":"Especiales","812":"Otros","814":"Otros","817":"Especiales","826":"Especiales","864":"Especiales","865":"Especiales","871":"Otros","886":"Otros","889":"Otros","893":"Especiales","895":"Otros","897":"Especiales","898":"Otros","899":"Otros","901":"Otros","902":"Especiales","903":"Especiales","905":"Especiales","906":"Otros","907":"Otros","908":"Otros","912":"Ordinario","913":"Ordinario","914":"Ordinario","915":"Ordinario","916":"Ordinario","917":"Ordinario","918":"Ordinario","919":"Ordinario","920":"Ordinario","921":"Ordinario","922":"Ordinario","924":"Especiales","928":"Especiales","929":"Especiales","932":"Especiales","892":"PDA","808":"PDA","939":"PDA","940":"Otros"};
+const MU = {"1":"Casillero","2":"Despacho","3":"Prestado","4":"A Fallo","5":"A Estudio","6":"S/Info","8":"Pre-Archivo","9":"Relatoria","10":"Diligenciandose","11":"En Archivo","12":"Cas. Externo"};
+const MTE = {"1":"Electronico","2":"Papel","3":"Mixto"};
+const MESES_NUM = {enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,julio:7,agosto:8,septiembre:9,octubre:10,noviembre:11,diciembre:12};
+const RESOLUCION_TIPOS = [
+  "Sentencia",
+  "Sentencia con allanamiento",
+  "Sentencia (Juzg.Lab.-Ejecutivos)",
+  "Acuerdo (Sentencia Homologación)",
+  "Sumaria Información (Auto)",
+  "Desistimiento de la Acción (Sentencia Homologación)",
+  "Desistimiento de la Acción (Sentencia que lo resuelve)",
+  "Desistimiento de la Acción y Derecho (Sentencia Homologación)",
+  "Desistimiento de la Acción y del Derecho (Sentencia que lo resuelve)",
+  "Desistimiento de la Acción y del Derecho  (Auto/Resoluc.)",
+  "Modos anorm.Auto desistimiento - concluye juicio principal",
+  "Modos anorm.Auto homologación/transacción - concluye juicio principal",
+  // Sin tildes - por si el archivo viene limpio
+  "Acuerdo (Sentencia Homologacion)",
+  "Sumaria Informacion (Auto)",
+  "Desistimiento de la Accion (Sentencia Homologacion)",
+  "Desistimiento de la Accion (Sentencia que lo resuelve)",
+  "Desistimiento de la Accion y Derecho (Sentencia Homologacion)",
+  "Desistimiento de la Accion y del Derecho (Sentencia que lo resuelve)",
+  "Desistimiento de la Accion y del Derecho  (Auto/Resoluc.)",
+  "Modos anorm.Auto homologacion/transaccion - concluye juicio principal"
+];
+const INADM_TIPOS = ["Inadmisibilidad de la demanda (decreto)"];
+
+let D = {stock:null,res:null,resint:null,ops:null,pend:null};
+let _rows = [];
+let CH = {};
+let FA = {locs:[],procs:[],ests:[]};
+
+const fm = n => Number(n||0).toLocaleString('es-AR');
+function mesNum(s){return MESES_NUM[String(s).toLowerCase().trim()]||0;}
+function fmtFecha(d){
+  if(!d)return '';
+  if(d instanceof Date){if(isNaN(d))return '';return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear();}
+  const s=String(d).trim();
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s))return s;
+  const sf=s.split(' ')[0];
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(sf))return sf;
+  const m1=sf.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m1){const fd=new Date(Date.UTC(Number(m1[3]),Number(m1[2])-1,Number(m1[1])));return String(fd.getUTCDate()).padStart(2,'0')+'/'+String(fd.getUTCMonth()+1).padStart(2,'0')+'/'+fd.getUTCFullYear();}
+  const n=Number(sf);
+  if(!isNaN(n)&&n>40000&&n<60000){const b=new Date(Date.UTC(1900,0,1));b.setUTCDate(b.getUTCDate()+n-2);return String(b.getUTCDate()).padStart(2,'0')+'/'+String(b.getUTCMonth()+1).padStart(2,'0')+'/'+b.getUTCFullYear();}
+  return sf;
+}
+function gP(id){return MP[String(Math.round(Number(id)||0))]||'Otros';}
+function ss(t,c,m){const el=document.getElementById('st-'+t);if(el){el.className='st '+c;el.textContent=m;}}
+const OV=e=>{e.preventDefault();e.currentTarget.classList.add('ov');};
+const OL=e=>e.currentTarget.classList.remove('ov');
+function DR(e,t){e.preventDefault();e.currentTarget.classList.remove('ov');const f=e.dataTransfer.files[0];if(f)LF({files:[f]},t);}
+
+function LF(inp,tipo){
+  const file=inp.files[0];if(!file)return;
+  if(file.name.toLowerCase().endsWith('.csv')){leerCSV(file,tipo);return;}
+  ss(tipo,'stl','⏳ Leyendo...');
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:false,raw:false});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      let rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      let hr=0,mx=0;
+      for(let i=0;i<Math.min(6,rows.length);i++){const f=rows[i].filter(c=>c!==''&&c!==null).length;if(f>mx){mx=f;hr=i;}}
+      const hdrs=rows[hr].map(h=>String(h).trim());
+      D[tipo]=rows.slice(hr+1).filter(r=>r.some(c=>c!==''&&c!==null)).map(row=>{const o={};hdrs.forEach((h,i)=>{o[h]=row[i]??'';});return o;});
+      ss(tipo,'sto','✓ '+D[tipo].length.toLocaleString('es-AR')+' registros');
+    }catch(err){ss(tipo,'ste','✗ Error');console.error(err);}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function leerCSV(file,tipo){
+  ss(tipo,'stl','⏳ Leyendo CSV...');
+  const pb=document.getElementById('pb-'+tipo);if(pb)pb.style.display='block';
+  const r=new FileReader();
+  r.onprogress=e=>{if(e.lengthComputable&&pb)document.getElementById('pf-'+tipo).style.width=Math.round(e.loaded/e.total*100)+'%';};
+  r.onload=e=>{
+    try{
+      const txt=new TextDecoder('iso-8859-1').decode(new Uint8Array(e.target.result));
+      if(pb)pb.style.display='none';
+      ss(tipo,'stl','⚙ Procesando...');
+      setTimeout(()=>{
+        const lines=txt.split('\n');
+        const sep=lines[0].includes(';')?';':',';
+        const hdrs=lines[0].split(sep).map(h=>h.replace(/^"|"$/g,'').trim());
+        D[tipo]=[];
+        for(let i=1;i<lines.length;i++){
+          const line=lines[i];if(!line.trim())continue;
+          const cols=line.split(sep);
+          const o={};hdrs.forEach((h,j)=>{o[h]=(cols[j]||'').replace(/^"|"$/g,'').trim();});
+          D[tipo].push(o);
+        }
+        ss(tipo,'sto','✓ '+D[tipo].length.toLocaleString('es-AR')+' (CSV)');
+      },30);
+    }catch(err){if(pb)pb.style.display='none';ss(tipo,'ste','✗ Error CSV');console.error(err);}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function PROC(){
+  const mp=document.getElementById('mp');
+  if(!D.stock){mp.textContent='⚠ El stock activo es obligatorio.';return;}
+  mp.textContent='⚙ Procesando...';
+  setTimeout(()=>{
+    try{
+      buildRows();
+      renderDash();
+      renderDetalle();
+      pobExp();
+      document.getElementById('exp-fecha').value=new Date().toLocaleDateString('es-AR');
+      document.getElementById('hdr-f').textContent=new Date().toLocaleDateString('es-AR');
+      mp.textContent='✓ Listo - '+_rows.length.toLocaleString('es-AR')+' causas procesadas.';
+    }catch(err){mp.textContent='✗ Error: '+err.message;console.error(err);}
+  },80);
+}
+
+function buildRows(){
+  // Resoluciones CSV/xlsx
+  const IDX_RES={};
+  if(D.res){
+    D.res.forEach(r=>{
+      const idE=String(r['idExpediente']||r['IdExpediente']||'').trim();
+      const tipo=String(r['TipoOperacion']||r['Tipo Operacion']||'').trim();
+      const fecha=fmtFecha(r['FechaOperacion']||r['Fecha Operacion']||'');
+      const anio=fecha?fecha.split('/')[2]:'';
+      if(!idE||!tipo)return;
+      if(!IDX_RES[idE])IDX_RES[idE]={tipo,fecha,anio};
+    });
+  }
+  // Operaciones resolucion interior
+  const IDX_RESINT={};
+  if(D.resint){
+    D.resint.forEach(r=>{
+      const idE=String(r['idExpediente']||r['IdExpediente']||'').trim();
+      const tipo=String(r['TipoOperacion']||r['Tipo Operacion']||'').trim();
+      const fecha=fmtFecha(r['FechaOperacion']||r['Fecha Operacion']||'');
+      const anio=fecha?fecha.split('/')[2]:'';
+      if(!idE||!tipo)return;
+      if(!IDX_RESINT[idE])IDX_RESINT[idE]={tipo,fecha,anio};
+    });
+  }
+  // Operaciones generales - ultima por expediente
+  const IDX_OPS={};
+  if(D.ops){
+    const lista=D.ops.map(r=>({
+      idE:String(r['idExpediente']||r['IdExpediente']||'').trim(),
+      anio:Number(r['Fecha - Año']||r['FechaAnio']||0),
+      mes:mesNum(r['Fecha - Mes']||r['FechaMes']||'')||Number(r['mes numero']||r['mes número']||0),
+      tipoOp:String(r['Tipo Operacion']||r['TipoOperacion']||'').trim()
+    })).filter(r=>r.idE&&r.anio);
+    lista.sort((a,b)=>{
+      if(a.idE<b.idE)return -1;if(a.idE>b.idE)return 1;
+      if(b.anio!==a.anio)return b.anio-a.anio;
+      return b.mes-a.mes;
+    });
+    lista.forEach(r=>{if(!IDX_OPS[r.idE])IDX_OPS[r.idE]={anio:r.anio,mes:r.mes,tipoOp:r.tipoOp};});
+  }
+  // Pendientes
+  const IDX_PEND={};
+  if(D.pend){
+    D.pend.forEach(r=>{
+      const idE=String(r['Nro. Expediente']||r['NroExpediente']||r['idExpediente']||'').trim();
+      if(idE)IDX_PEND[idE]={car:String(r['Caratula Expediente']||''),ins:String(r['Emp. Instructor']||'')};
+    });
+  }
+
+  _rows=[];
+  (D.stock||[]).forEach(row=>{
+    const idE=String(row['idExpediente']||row['IdExpediente']||'').trim();
+    const idTJ=String(row['idTipoJuicio']||'').trim();
+    const idU=String(row['idTipoUbicacion']||'').trim();
+    const idTE=String(row['idTipoExpediente']||'').trim();
+    const loc=String(row['Localidad']||'').trim();
+    const dep=String(row['Dependencia']||row['Dependencias']||'').trim();
+    const capInt=String(row['Capital / Interior']||'').trim();
+    const proc=gP(idTJ);
+    const ubic=MU[idU]||'';
+    const tipoExpe=MTE[idTE]||'';
+
+    // Estado procesal
+    let est='Sin resolucion',tipoRes='',fechaRes='',anioRes='';
+    const resD=IDX_RES[idE],resI=IDX_RESINT[idE];
+    const resActual=resD||resI;
+    if(resActual){
+      if(INADM_TIPOS.includes(resActual.tipo)){est='Inadmisibilidad/revisar';}
+      else if(RESOLUCION_TIPOS.includes(resActual.tipo)){est='Resuelto';}
+      else{est='Sin resolucion';}
+      tipoRes=resActual.tipo;fechaRes=resActual.fecha;anioRes=resActual.anio;
+    }
+
+    // Ultima operacion
+    const ops=IDX_OPS[idE];
+    const anioUlt=ops?String(ops.anio):(D.ops?'Sin ops en el periodo':'');
+    const mesUlt=ops?String(ops.mes):(D.ops?'Sin ops en el periodo':'');
+
+    // Pendientes
+    const pend=IDX_PEND[idE]||{};
+
+    const fiAnio=String(row['FechaInicio - Año']||'').trim();
+    const fiMes=String(row['FechaInicio - Mes']||'').trim();
+    const tipoJuicio=String(row['Tipo de Juicio, Grupos y Dependencias']||'').trim();
+    _rows.push({idE,loc,dep,capInt,proc,ubic,tipoExpe,est,tipoRes,fechaRes,anioRes,
+      anioUlt,mesUlt,car:pend.car||'',ins:pend.ins||'',
+      fiAnio,fiMes,tipoJuicio});
+  });
+}
+
+// ===== FILTROS =====
+function rowsFilt(){
+  return _rows.filter(r=>{
+    if(FA.locs.length&&!FA.locs.includes(r.loc))return false;
+    if(FA.procs.length&&!FA.procs.includes(r.proc))return false;
+    if(FA.ests.length&&!FA.ests.includes(r.est))return false;
+    return true;
+  });
+}
+function tFilt(el){
+  const t=el.getAttribute('data-t'),v=el.getAttribute('data-v');
+  const arr=FA[t];const idx=arr.indexOf(v);
+  if(idx>=0)arr.splice(idx,1);else arr.push(v);
+  el.classList.toggle('active');
+  renderDash();renderDetalle();
+}
+function clrFilt(){
+  FA={locs:[],procs:[],ests:[]};
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+  renderDash();renderDetalle();
+}
+
+// ===== DASHBOARD =====
+function renderDash(){
+  const rows=rowsFilt();
+  const total=rows.length;
+  if(!total){document.getElementById('dash-c').innerHTML='<div class="empty">Sin causas con los filtros aplicados.</div>';return;}
+
+  const locs=[...new Set(_rows.map(r=>r.loc))].sort();
+  const tP={Ordinario:0,PDA:0,Especiales:0,Otros:0};
+  rows.forEach(r=>tP[r.proc]=(tP[r.proc]||0)+1);
+  const res=rows.filter(r=>r.est==='Resuelto').length;
+  const inadm=rows.filter(r=>r.est==='Inadmisibilidad/revisar').length;
+  const sinR=rows.filter(r=>r.est==='Sin resolucion').length;
+  const hasRes=D.res||D.resint;
+
+  // BARRA FILTROS
+  let h='<div class="fbar">';
+  h+='<span class="fl">Proceso:</span>';
+  h+='<span class="fchip fc-ord" data-t="procs" data-v="Ordinario" onclick="tFilt(this)">Ordinario</span>';
+  h+='<span class="fchip fc-pda" data-t="procs" data-v="PDA" onclick="tFilt(this)">PDA</span>';
+  h+='<span class="fchip fc-esp" data-t="procs" data-v="Especiales" onclick="tFilt(this)">Especiales</span>';
+  h+='<span class="fchip fc-ot" data-t="procs" data-v="Otros" onclick="tFilt(this)">Otros</span>';
+  h+='<div class="fsep"></div><span class="fl">Estado:</span>';
+  h+='<span class="fchip fc-res" data-t="ests" data-v="Resuelto" onclick="tFilt(this)">Resuelto</span>';
+  h+='<span class="fchip fc-sinr" data-t="ests" data-v="Sin resolucion" onclick="tFilt(this)">Sin resolucion</span>';
+  if(inadm>0)h+='<span class="fchip fc-inadm" data-t="ests" data-v="Inadmisibilidad/revisar" onclick="tFilt(this)">Inadmis.</span>';
+  h+='<div class="fsep"></div><span class="fl">Localidad:</span>';
+  locs.forEach(l=>{h+='<span class="fchip fc-loc" data-t="locs" data-v="'+l+'" onclick="tFilt(this)">'+l+'</span>';});
+  h+='<button class="fclr" onclick="clrFilt()">✕ Limpiar</button></div>';
+
+  // STATS ROW
+  h+='<div class="stats-row">';
+  h+='<div class="stat-box sb-tot"><div class="stat-label">Total activos</div><div class="stat-val" style="color:var(--ac)">'+fm(total)+'</div><div class="stat-pct">'+locs.length+' localidades</div></div>';
+  if(hasRes){
+    h+='<div class="stat-box sb-res"><div class="stat-label">Resueltas</div><div class="stat-val" style="color:var(--res)">'+fm(res)+'</div><div class="stat-pct">'+Math.round(res/total*100)+'% del total</div></div>';
+    h+='<div class="stat-box sb-sinr"><div class="stat-label">Sin resolucion</div><div class="stat-val" style="color:var(--sinr)">'+fm(sinR)+'</div><div class="stat-pct">'+Math.round(sinR/total*100)+'% del total</div></div>';
+    if(inadm>0)h+='<div class="stat-box sb-inadm"><div class="stat-label">Inadmisibilidad</div><div class="stat-val" style="color:var(--inadm)">'+fm(inadm)+'</div><div class="stat-pct">revisar</div></div>';
+  }
+  h+='</div>';
+
+  // TABLA DINAMICA PIVOT
+  const PROCS=['Ordinario','PDA','Especiales','Otros'];
+  h+='<div class="two" style="margin-bottom:.8rem">';
+  h+='<div><div class="card"><div class="ct">Tipo de proceso vs Estado procesal</div>';
+  h+='<table class="pivot"><thead><tr>';
+  h+='<th class="th-proc">Tipo de proceso</th>';
+  if(hasRes){
+    h+='<th class="th-res">Resuelto</th>';
+    h+='<th class="th-sinr">Sin resolucion</th>';
+    if(inadm>0)h+='<th class="th-inadm">Inadmis.</th>';
+  }
+  h+='<th class="th-tot">Total</th></tr></thead><tbody>';
+  let gRes=0,gSin=0,gInadm=0,gTot=0;
+  PROCS.forEach(p=>{
+    const sub=rows.filter(r=>r.proc===p);
+    if(!sub.length)return;
+    const r2=sub.filter(r=>r.est==='Resuelto').length;
+    const s2=sub.filter(r=>r.est==='Sin resolucion').length;
+    const i2=sub.filter(r=>r.est==='Inadmisibilidad/revisar').length;
+    const t2=sub.length;
+    gRes+=r2;gSin+=s2;gInadm+=i2;gTot+=t2;
+    const clsP={Ordinario:'bo',PDA:'bp',Especiales:'be',Otros:'bt'}[p];
+    h+='<tr><td><span class="badge '+clsP+'">'+p+'</span></td>';
+    if(hasRes){
+      h+='<td class="td-res">'+fm(r2)+'</td>';
+      h+='<td class="td-sinr">'+fm(s2)+'</td>';
+      if(inadm>0)h+='<td class="td-inadm">'+(i2||'')+'</td>';
+    }
+    h+='<td class="td-tot">'+fm(t2)+'</td></tr>';
+  });
+  h+='<tr class="tr-tot"><td>Total</td>';
+  if(hasRes){h+='<td class="td-res">'+fm(gRes)+'</td><td class="td-sinr">'+fm(gSin)+'</td>';if(inadm>0)h+='<td class="td-inadm">'+fm(gInadm)+'</td>';}
+  h+='<td class="td-tot">'+fm(gTot)+'</td></tr></tbody></table></div>';
+
+  // Barras por proceso
+  h+='<div class="card" style="margin-top:0"><div class="ct">Proporcion por proceso</div>';
+  PROCS.forEach(p=>{
+    const n=rows.filter(r=>r.proc===p).length;
+    if(!n)return;
+    const pct=Math.round(n/total*100);
+    const col={Ordinario:'var(--ord)',PDA:'var(--pda)',Especiales:'var(--esp)',Otros:'var(--ot)'}[p];
+    h+='<div style="margin-bottom:.55rem"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span><span class="badge '+{Ordinario:'bo',PDA:'bp',Especiales:'be',Otros:'bt'}[p]+'">'+p+'</span></span><span style="font-family:var(--mn);color:var(--tx2)">'+fm(n)+' ('+pct+'%)</span></div>';
+    h+='<div class="barra"><div class="barra-fill" style="width:'+pct+'%;background:'+col+'"></div></div></div>';
+  });
+  h+='</div></div>';
+
+  // Grafico dona + barras por localidad
+  h+='<div>';
+  h+='<div class="card"><div class="ct">Distribucion por tipo de proceso</div><div class="cw"><canvas id="ch-dona"></canvas></div></div>';
+  h+='<div class="card"><div class="ct">Stock por localidad</div><div class="cwl"><canvas id="ch-loc"></canvas></div></div>';
+  h+='</div></div>';
+
+  // Tabla por localidad
+  h+='<div class="card"><div class="ct">Resumen por localidad</div><table class="gen">';
+  h+='<thead><tr><th>Localidad</th><th>Dependencia</th><th>Total</th>';
+  ['Ordinario','PDA','Especiales','Otros'].forEach(p=>h+='<th style="color:'+(p==='Ordinario'?'var(--ord)':p==='PDA'?'var(--pda)':p==='Especiales'?'var(--esp)':'var(--ot)')+'">'+p+'</th>');
+  if(hasRes)h+='<th style="color:var(--res)">Resuelto</th><th style="color:var(--sinr)">Sin res.</th>';
+  h+='</tr></thead><tbody>';
+  const bLD={};
+  rows.forEach(r=>{
+    if(!bLD[r.loc])bLD[r.loc]={};
+    if(!bLD[r.loc][r.dep])bLD[r.loc][r.dep]={t:0,ord:0,pda:0,esp:0,ot:0,res:0,sinr:0,inadm:0};
+    const d=bLD[r.loc][r.dep];d.t++;
+    if(r.proc==='Ordinario')d.ord++;else if(r.proc==='PDA')d.pda++;else if(r.proc==='Especiales')d.esp++;else d.ot++;
+    if(r.est==='Resuelto')d.res++;else if(r.est==='Inadmisibilidad/revisar')d.inadm++;else d.sinr++;
+  });
+  Object.entries(bLD).sort((a,b)=>a[0]>b[0]?1:-1).forEach(([loc,deps])=>{
+    Object.entries(deps).sort((a,b)=>a[0]>b[0]?1:-1).forEach(([dep,d],i)=>{
+      h+='<tr>'+(i===0?'<td rowspan="'+Object.keys(deps).length+'" style="font-weight:600;border-right:2px solid var(--ac);color:var(--ac)">'+loc+'</td>':'');
+      h+='<td style="font-size:11px;color:var(--tx2)">'+dep+'</td><td style="font-weight:600">'+fm(d.t)+'</td>';
+      h+='<td>'+fm(d.ord)+'</td><td>'+fm(d.pda)+'</td><td>'+fm(d.esp)+'</td><td>'+fm(d.ot)+'</td>';
+      if(hasRes)h+='<td style="color:var(--res)">'+fm(d.res)+'</td><td style="color:var(--sinr)">'+fm(d.sinr)+'</td>';
+      h+='</tr>';
+    });
+  });
+  const tTot=rows.length,tOrd=rows.filter(r=>r.proc==='Ordinario').length,tPda=rows.filter(r=>r.proc==='PDA').length;
+  const tEsp=rows.filter(r=>r.proc==='Especiales').length,tOt=rows.filter(r=>r.proc==='Otros').length;
+  h+='<tr class="trt"><td colspan="2">Total</td><td>'+fm(tTot)+'</td><td>'+fm(tOrd)+'</td><td>'+fm(tPda)+'</td><td>'+fm(tEsp)+'</td><td>'+fm(tOt)+'</td>';
+  if(hasRes)h+='<td>'+fm(res)+'</td><td>'+fm(sinR)+'</td>';
+  h+='</tr></tbody></table></div>';
+
+  document.getElementById('dash-c').innerHTML=h;
+
+  setTimeout(()=>{
+    ['ch-dona','ch-loc'].forEach(id=>{if(CH[id])CH[id].destroy();});
+    const COLS=['#1A56B0','#1A7A3C','#6B3FA0','#B07A00'];
+    CH['ch-dona']=new Chart(document.getElementById('ch-dona'),{type:'doughnut',data:{labels:['Ordinario','PDA','Especiales','Otros'],datasets:[{data:[tP.Ordinario,tP.PDA,tP.Especiales,tP.Otros],backgroundColor:COLS,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},cutout:'60%'}});
+    const locLabels=[...new Set(rows.map(r=>r.loc))].sort();
+    CH['ch-loc']=new Chart(document.getElementById('ch-loc'),{type:'bar',data:{labels:locLabels,datasets:[
+      {label:'Ordinario',data:locLabels.map(l=>rows.filter(r=>r.loc===l&&r.proc==='Ordinario').length),backgroundColor:'#1A56B0',borderRadius:3},
+      {label:'PDA',data:locLabels.map(l=>rows.filter(r=>r.loc===l&&r.proc==='PDA').length),backgroundColor:'#1A7A3C',borderRadius:3},
+      {label:'Especiales',data:locLabels.map(l=>rows.filter(r=>r.loc===l&&r.proc==='Especiales').length),backgroundColor:'#6B3FA0',borderRadius:3},
+      {label:'Otros',data:locLabels.map(l=>rows.filter(r=>r.loc===l&&r.proc==='Otros').length),backgroundColor:'#B07A00',borderRadius:3}
+    ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},scales:{x:{stacked:true,beginAtZero:true},y:{stacked:true,ticks:{font:{size:10}}}}}});
+  },120);
+}
+
+// ===== DETALLE =====
+function renderDetalle(){
+  const rows=rowsFilt();
+  if(!rows.length){document.getElementById('detalle-c').innerHTML='<div class="empty">Sin causas.</div>';return;}
+  const locs=[...new Set(_rows.map(r=>r.loc))].sort();
+  const hasRes=D.res||D.resint;
+  const hasOps=D.ops;
+  let h='<div class="fbar" id="det-fb">';
+  h+='<span class="fl">Localidad:</span>';
+  locs.forEach(l=>{h+='<span class="fchip fc-loc" data-t="locs" data-v="'+l+'" onclick="tFilt(this)">'+l+'</span>';});
+  h+='<div class="fsep"></div><span class="fl">Proceso:</span>';
+  h+='<span class="fchip fc-ord" data-t="procs" data-v="Ordinario" onclick="tFilt(this)">Ord.</span>';
+  h+='<span class="fchip fc-pda" data-t="procs" data-v="PDA" onclick="tFilt(this)">PDA</span>';
+  h+='<span class="fchip fc-esp" data-t="procs" data-v="Especiales" onclick="tFilt(this)">Esp.</span>';
+  h+='<span class="fchip fc-ot" data-t="procs" data-v="Otros" onclick="tFilt(this)">Otros</span>';
+  h+='<div class="fsep"></div><span class="fl">Estado:</span>';
+  h+='<span class="fchip fc-res" data-t="ests" data-v="Resuelto" onclick="tFilt(this)">Resuelto</span>';
+  h+='<span class="fchip fc-sinr" data-t="ests" data-v="Sin resolucion" onclick="tFilt(this)">Sin res.</span>';
+  h+='<button class="fclr" onclick="clrFilt()">✕ Limpiar</button></div>';
+  h+='<div style="font-size:11px;color:var(--tx3);font-family:var(--mn);margin-bottom:.5rem">'+fm(rows.length)+' causas</div>';
+  h+='<div style="overflow-x:auto;max-height:450px;overflow-y:auto"><table class="gen"><thead><tr>';
+  h+='<th>idExpediente</th><th>Localidad</th><th>Dependencia</th><th>Proceso</th>';
+  if(hasRes)h+='<th>Estado</th><th>Tipo resolucion</th><th>Fecha res.</th>';
+  if(hasOps)h+='<th>Año ult. op.</th><th>Mes ult. op.</th>';
+  h+='<th>Ubicacion</th>';
+  if(D.pend)h+='<th>Caratula</th><th>Instructor</th>';
+  h+='</tr></thead><tbody>';
+  rows.slice(0,500).forEach(r=>{
+    const cEst=r.est==='Resuelto'?'cr':r.est==='Inadmisibilidad/revisar'?'ci':'cs';
+    h+='<tr>';
+    h+='<td style="font-family:var(--mn)">'+r.idE+'</td>';
+    h+='<td>'+r.loc+'</td>';
+    h+='<td style="font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.dep+'</td>';
+    h+='<td><span class="badge '+{Ordinario:'bo',PDA:'bp',Especiales:'be',Otros:'bt'}[r.proc]+'">'+r.proc+'</span></td>';
+    if(hasRes){
+      h+='<td><span class="chip '+cEst+'">'+r.est+'</span></td>';
+      h+='<td style="font-size:10px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.tipoRes+'</td>';
+      h+='<td style="font-family:var(--mn)">'+r.fechaRes+'</td>';
+    }
+    if(hasOps){h+='<td style="font-family:var(--mn)">'+r.anioUlt+'</td><td style="font-family:var(--mn)">'+r.mesUlt+'</td>';}
+    h+='<td>'+r.ubic+'</td>';
+    if(D.pend){h+='<td style="font-size:10px">'+r.car+'</td><td style="font-size:10px">'+r.ins+'</td>';}
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  if(rows.length>500)h+='<p style="font-size:10px;color:var(--tx3);margin-top:5px;font-style:italic;font-family:var(--mn)">Mostrando 500 de '+fm(rows.length)+'. La exportacion incluye todas.</p>';
+  document.getElementById('detalle-c').innerHTML=h;
+}
+
+// ===== EXPORTAR =====
+function pobExp(){
+  const locs=[...new Set(_rows.map(r=>r.loc))].sort();
+  const sel=document.getElementById('exp-loc');if(!sel)return;
+  sel.innerHTML='<option value="">Todas</option>';
+  locs.forEach(l=>{const o=document.createElement('option');o.value=l;o.textContent=l;sel.appendChild(o);});
+  updExpPrev();
+}
+function getExpRows(){
+  const lf=document.getElementById('exp-loc')?.value||'';
+  const ef=document.getElementById('exp-est')?.value||'';
+  const pf=document.getElementById('exp-proc')?.value||'';
+  // Fecha de corte para "Sin op. desde"
+  var hoy=new Date();
+  var ayer=new Date(hoy);ayer.setDate(ayer.getDate()-365);
+  var dCorte=String(ayer.getDate()).padStart(2,'0')+'/'+String(ayer.getMonth()+1).padStart(2,'0')+'/'+String(ayer.getFullYear()).slice(2);
+  var sinOpTxt='Sin op. desde '+dCorte;
+
+  return _rows.filter(r=>{
+    if(lf&&r.loc!==lf)return false;
+    if(ef){
+      var estFilt=ef==='Sin resolucion'?'Sin resol.':ef;
+      if(r.est!==ef&&r.est!==estFilt)return false;
+    }
+    if(pf&&r.proc!==pf)return false;
+    return true;
+  }).map(r=>({
+    'Expediente':r.idE,
+    'Tipo de Proceso':r.proc,
+    'Tipo de Juicio, Grupos y Dependencias':r.tipoJuicio,
+    'FechaInicio - Año':r.fiAnio,
+    'FechaInicio - Mes':r.fiMes,
+    'Ubicacion':r.ubic,
+    'Tipo Expediente':r.tipoExpe,
+    'Estado procesal':r.est==='Resuelto'?'Resuelto':r.est==='Inadmisibilidad/revisar'?'Inadmisibilidad/revisar':'Sin resol.',
+    'Tipo de resolucion':r.tipoRes,
+    'Fecha Resol':r.fechaRes,
+    'Localidad':r.loc,
+    'Dependencia':r.dep,
+    'Caratula':r.car||'',
+    'Instructor':r.ins||'',
+    'Año ult. Op':r.anioUlt==='Sin ops en el periodo'?sinOpTxt:(r.anioUlt||''),
+    'Mes ult. Op':r.mesUlt==='Sin ops en el periodo'?sinOpTxt:(r.mesUlt?Number(r.mesUlt)||r.mesUlt:'')
+  }));
+}
+function updExpPrev(){const r=getExpRows();const p=document.getElementById('exp-prev');if(p)p.textContent=r.length?fm(r.length)+' causas a exportar':'Sin datos';}
+function PRV(){
+  const rows=getExpRows().slice(0,30);if(!rows.length){document.getElementById('exp-wrap').innerHTML='<div class="empty">Sin datos.</div>';return;}
+  const cols=Object.keys(rows[0]);
+  let h='<div class="card"><div class="ct">Previsualizacion</div><div style="overflow-x:auto;max-height:240px"><table class="gen"><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{h+='<tr>'+cols.map(c=>'<td>'+(r[c]||'')+'</td>').join('')+'</tr>';});
+  h+='</tbody></table></div></div>';
+  document.getElementById('exp-wrap').innerHTML=h;updExpPrev();
+}
+function EXP(){
+  const lf=document.getElementById('exp-loc')?.value||'';
+  const ef=document.getElementById('exp-est')?.value||'';
+  const pf=document.getElementById('exp-proc')?.value||'';
+  const fecha=document.getElementById('exp-fecha')?.value||new Date().toLocaleDateString('es-AR');
+  const rows=getExpRows();if(!rows.length){alert('Sin datos.');return;}
+  const wb=XLSX.utils.book_new();
+  const scope=lf||'Todas las localidades';
+  const titulo='Listado activos al '+fecha+' - '+scope+(ef?' - '+ef:'')+(pf?' - '+pf:'');
+  const ws=XLSX.utils.aoa_to_sheet([[titulo],Object.keys(rows[0]),...rows.map(r=>Object.values(r))]);
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:Object.keys(rows[0]).length-1}}];
+  if(ws['A1'])ws['A1'].s={font:{bold:true,sz:12,color:{rgb:'CC0000'}}};
+  ws['!autofilter']={ref:'A2:'+XLSX.utils.encode_col(Object.keys(rows[0]).length-1)+(rows.length+1)};
+  ws['!cols']=[{wch:12},{wch:12},{wch:42},{wch:8},{wch:12},{wch:14},{wch:12},{wch:12},{wch:40},{wch:13},{wch:16},{wch:40},{wch:45},{wch:18},{wch:22},{wch:22}];
+  XLSX.utils.book_append_sheet(wb,ws,'Listado');
+  // Hoja resumen
+  const rd=[['Resumen - '+scope+' - al '+fecha],[''],['Localidad','Dependencia','Total','Ordinario','PDA','Especiales','Otros','Resuelto','Sin resolucion','Inadmis.']];
+  const bLD={};
+  _rows.forEach(r=>{
+    if(!bLD[r.loc])bLD[r.loc]={};
+    if(!bLD[r.loc][r.dep])bLD[r.loc][r.dep]={t:0,ord:0,pda:0,esp:0,ot:0,res:0,sinr:0,inadm:0};
+    const d=bLD[r.loc][r.dep];d.t++;
+    if(r.proc==='Ordinario')d.ord++;else if(r.proc==='PDA')d.pda++;else if(r.proc==='Especiales')d.esp++;else d.ot++;
+    if(r.est==='Resuelto')d.res++;else if(r.est==='Inadmisibilidad/revisar')d.inadm++;else d.sinr++;
+  });
+  Object.entries(bLD).sort((a,b)=>a[0]>b[0]?1:-1).forEach(([loc,deps])=>{
+    Object.entries(deps).sort((a,b)=>a[0]>b[0]?1:-1).forEach(([dep,d])=>{
+      rd.push([loc,dep,d.t,d.ord,d.pda,d.esp,d.ot,d.res,d.sinr,d.inadm]);
+    });
+  });
+  const ws2=XLSX.utils.aoa_to_sheet(rd);
+  ws2['!cols']=[{wch:16},{wch:40},{wch:8},{wch:10},{wch:8},{wch:10},{wch:8},{wch:10},{wch:14},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Resumen');
+  XLSX.writeFile(wb,'activos_'+scope.replace(/[^a-zA-Z0-9]/g,'_')+'_'+fecha.replace(/\//g,'-')+'.xlsx');
+}
+
+function GT(id,el){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');el.classList.add('active');
+}
+document.getElementById('hdr-f').textContent=new Date().toLocaleDateString('es-AR');
+</script>
+</body>
+</html>
